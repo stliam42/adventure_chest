@@ -158,7 +158,7 @@ class AdventureChest():
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
-        self._print_dungeon_info()
+        self._print_party_info()
 
 
     def _fight(self):
