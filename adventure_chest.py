@@ -79,15 +79,9 @@ class AdventureChest():
         """Creating new monsters list"""
         # Calculating available dice
         available_dice = self.settings.amount_of_dice - len(self.dragon_lair)
-        # Limiting the number of dice 
-        if self.stats.dungeon_level > self.settings.amount_of_dice:
-            monster_num = self.settings.amount_of_dice
-        else:
-            monster_num = self.stats.dungeon_level
 
-        # Roll all available dice
-        if monster_num > available_dice:
-            monster_num = available_dice 
+        # Limiting the number of dice 
+        monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
         self.dungeon = self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] #
@@ -145,7 +139,7 @@ class AdventureChest():
         self.party.remove(member)
 
         # Process of drinking and adding new members
-        while "Зелье" in self.dungeon:
+        while "Зелье" in self.dungeon and self.cemetry:
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
