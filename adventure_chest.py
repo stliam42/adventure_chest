@@ -159,6 +159,8 @@ class AdventureChest():
                 # Moves dragons to dragons' lair
                 if 'Дракон' in self.dungeon:
                     self._dragon_lair()
+                # Standart action
+                action = FIGHT
 
                 # Break the cycle if no monsters left
                 if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
