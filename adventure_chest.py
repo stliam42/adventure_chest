@@ -32,11 +32,9 @@ class AdventureChest():
         while True:
             self._new_dungeon_level()
             self._fight()
-            #if self.stats.dragon_awake:
-            #    self._dragon_fight()
+            if self.stats.dragon_awake:
+                self._dragon_fight()
             self._reward()
-            
-           
             
 
     def _new_dungeon_level(self):
@@ -120,9 +118,9 @@ class AdventureChest():
         black_reroll_list = []
 
         while True:
-            black_and_white = self.party + self.dungeon
+            black_and_white_list = self.party + self.dungeon
             print("Выберете кубик партии или подземелья(оставьте ввод пустым если выбор окончен): ")
-            item = self._get_item(black_and_white)
+            item = self._get_item(black_and_white_list)
             if item == '':
                 break
             elif item in self.white_die.sides:
@@ -136,10 +134,11 @@ class AdventureChest():
 
         self._print_party_info()
 
+
     def _potion(self):
         """Drinking potions at the end of dungeon"""
         # Chooses the member who will drink potions
-        print('Выбери сопартийца, который возьмет зелья:')
+        print('Выбери сопартийца, который выпьет зелья:')
         member = self._get_item(self.party)
         self.party.remove(member)
 
@@ -156,14 +155,19 @@ class AdventureChest():
         """Fighting cycle"""
         FIGHT = 1
         SCROLL = 2
-        while "Гоблин" in self.dungeon or "Скелет" in self.dungeon or "Слизень" in self.dungeon:
+        while ("Гоблин" in self.dungeon or "Скелет" in self.dungeon or 
+            "Слизень" in self.dungeon):
+                # Moves dragons to dragons' lair
                 if 'Дракон' in self.dungeon:
                     self._dragon_lair()
-
+                # Standart action
                 action = FIGHT
+
+                # Fighting or using scroll
                 if "Свиток" in self.party:
                     action = int(input('1 - Деремся, 2 - Используем свиток\n'))
 
+                # Fight
                 if action == FIGHT:
 
                     print("Выберите сопартийца: ")
@@ -176,15 +180,20 @@ class AdventureChest():
         
                     self._print_party_info()
 
+                # Scroll
                 elif action == SCROLL:
                     self._scroll()
 
+    def _dragon_fight(self):
+        print('Dragon is beaten')
+
     def _reward(self):
         """Reward cycle"""
-        while "Сундук" or "Зелье" in self.dungeon:
+        while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
             print('Чистим сундуки и зелья:')
             action = self._get_item(self.dungeon)
             if action == "Сундук":
+                #self._chest() #create me
                 break
             elif action == "Зелье":
                 self._potion()
