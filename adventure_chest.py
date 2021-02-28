@@ -31,27 +31,12 @@ class AdventureChest():
         """Run the game"""
         while True:
             self._new_dungeon_level()
-
-            #Fighting cycle
-            while "Гоблин" in self.dungeon or "Скелет" in self.dungeon or "Слизень" in self.dungeon:
-                if 'Дракон' in self.dungeon:
-                    self._dragon_lair()
-                request = 1
-                if "Свиток" in self.party:
-                    request = int(input('1 - Деремся, 2 - Используем свиток\n'))
-                if request == 1:
-                    self._fight()
-                elif request == 2:
-                    self._scroll()
-
-            # Reward cycle
-            while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
-                print('Чистим сундуки и зелья:')
-                request = self._get_item(self.dungeon)
-                if request == "Сундук":
-                    break
-                elif request == "Зелье":
-                    self._potion()
+            self._fight()
+            #if self.stats.dragon_awake:
+            #    self._dragon_fight()
+            self._reward()
+            
+           
             
 
     def _new_dungeon_level(self):
@@ -104,9 +89,9 @@ class AdventureChest():
 
         # Roll all available dice
         if monster_num > available_dice:
-            monster_num = available_dice
+            monster_num = available_dice 
 
-        # Creating monsters
+        # Creating dungeon
         self.dungeon = self.black_die.roll(monster_num)
 
 
@@ -137,107 +122,144 @@ class AdventureChest():
         while True:
             black_and_white = self.party + self.dungeon
             print("Выберете кубик партии или подземелья(оставьте ввод пустым если выбор окончен): ")
-            request = self._get_item(black_and_white)
-            if request == '':
+            item = self._get_item(black_and_white)
+            if item == '':
                 break
-            elif request in self.white_die.sides:
-                white_reroll_list.append(self.party.pop(self.party.index(request)))
-            elif request in self.black_die.sides:
-                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(request)))
+            elif item in self.white_die.sides:
+                white_reroll_list.append(self.party.pop(self.party.index(item)))
+            elif item in self.black_die.sides:
+                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
 
+        # Extends party and dungeon lists with new members
         self.party.extend(self.white_die.roll(len(white_reroll_list)))
         self.dungeon.extend(self.black_die.roll(len(black_reroll_list)))
+
         self._print_party_info()
 
     def _potion(self):
-        """Drink potions at the end of dungeon"""
-        print('Вебери сопартийца, который возьмет зелья:')
-        request = self._get_item(self.party)
-        self.party.remove(request)
+        """Drinking potions at the end of dungeon"""
+        # Chooses the member who will drink potions
+        print('Выбери сопартийца, который возьмет зелья:')
+        member = self._get_item(self.party)
+        self.party.remove(member)
+
+        # Process of drinking and adding new members
         while "Зелье" in self.dungeon:
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
+
         self._print_party_info()
 
 
     def _fight(self):
-        """Fighting"""
-        print("Выберите сопартийца: ")
-        member = self._get_item(self.party, del_scroll=True)
-        print("Выберите монстра: ")
-        monster = self._get_item(self.dungeon, del_chest=True, del_potion=True)
+        """Fighting cycle"""
+        FIGHT = 1
+        SCROLL = 2
+        while "Гоблин" in self.dungeon or "Скелет" in self.dungeon or "Слизень" in self.dungeon:
+                if 'Дракон' in self.dungeon:
+                    self._dragon_lair()
 
-        # Check warior-monster
-        if member == "Воин" and monster == "Гоблин":
-            self._kill_all(member, monster)
-        elif member == "Воин":
-            self._kill_one(member, monster)
+                action = FIGHT
+                if "Свиток" in self.party:
+                    action = int(input('1 - Деремся, 2 - Используем свиток\n'))
 
-        # Check cleric-monster
-        if member == "Клирик" and monster == "Скелет":
-            self._kill_all(member, monster)
-        elif member == "Клирик":
-            self._kill_one(member, monster)
+                if action == FIGHT:
 
-        # Check magician-monster
-        if member == "Маг" and monster == "Слизень":
-            self._kill_all(member, monster)
-        elif member == "Маг":
-            self._kill_one(member, monster)
+                    print("Выберите сопартийца: ")
+                    member = self._get_item(self.party, del_scroll=True)
+                    print("Выберите монстра: ")
+                    monster = self._get_item(self.dungeon, del_chest=True, del_potion=True)
 
-        # Check thief-monster
-        if member == "Вор":
-            self._kill_one(member, monster)
-
-        # Check guardian-monster
-        if member == "Страж":
-            self._kill_all(member, monster)
+                    #Checks and kills
+                    self._check_and_kill(member, monster)
         
-        self._print_party_info()
+                    self._print_party_info()
+
+                elif action == SCROLL:
+                    self._scroll()
+
+    def _reward(self):
+        """Reward cycle"""
+        while "Сундук" or "Зелье" in self.dungeon:
+            print('Чистим сундуки и зелья:')
+            action = self._get_item(self.dungeon)
+            if action == "Сундук":
+                break
+            elif action == "Зелье":
+                self._potion()
+
+    def _check_and_kill(self, member, monster):
+        """ Checks a member and a monster interaction
+            and kills monsters
+        """
+        # Warrior
+        if member == "Воин": 
+            if monster == "Гоблин":
+                self._kill_all(member, monster)
+            else:
+                self._kill_one(member, monster)
+        # Cleric
+        elif member == "Клирик":
+            if monster == "Скелет":
+                self._kill_all(member, monster)
+            else:
+                self._kill_one(member, monster)
+        # Magician
+        elif member == "Маг":
+            if monster == "Слизень":
+                self._kill_all(member, monster)
+            else:
+                self._kill_one(member, monster)
+        # Theif
+        elif member == "Вор":
+            self._kill_one(member, monster)
+        # Guardian
+        elif member == "Страж":
+            self._kill_all(member, monster)
 
 
-    def _get_item(self, list_, del_scroll=False, del_chest=False, del_potion=False):
-        """ Choosing member and monster"""
-        list_set = list(set(list_))
+    def _get_item(self, items_list, del_scroll=False, del_chest=False, del_potion=False):
+        """Choosing item from 'items_list' and return it"""
+        unique_list = list(set(items_list))
 
-        while ('Свиток' in list_set and del_scroll or "Сундук" in list_set and del_chest 
-               or "Зелье" in list_set and del_potion):
-            if 'Свиток' in list_set and  del_scroll:
-                list_set.remove('Свиток')
-            elif "Сундук" in list_set and del_chest:
-                list_set.remove("Сундук")
-            elif "Зелье" in list_set and del_potion:
-                list_set.remove("Зелье")
-
-        request_str = self._get_items_str(list_set)
+        # Deleting scrolls, chests and potions of necessity
+        if 'Свиток' in unique_list and  del_scroll:
+            unique_list.remove('Свиток')
+        if "Сундук" in unique_list and del_chest:
+            unique_list.remove("Сундук")
+        if "Зелье" in unique_list and del_potion:
+            unique_list.remove("Зелье")
 
         try:
-            item = list_set[int(input(request_str))]
+            item = unique_list[int(input(self._get_items_str(unique_list)))]
         except:
             return ''
         else:
             return item
 
-    def _get_items_str(self, list_):
-        """ Creating string for list's item"""
-        items_str = ""
 
-        for i in range(len(list_)):
-            items_str += f'{list_[i]} - {i}, '
+    def _get_items_str(self, items_list):
+        """Creating a string of numbered items in a list"""
+        numbered_items = ""
+
+        for i in range(len(items_list)):
+            numbered_items += f'{items_list[i]} - {i}, '
 
         # Replace the last comma with a period
-        items_str = items_str[::-1].replace(',', '.', 1)[::-1]
+        numbered_items = numbered_items[::-1].replace(',', '.', 1)[::-1]
         
-        items_str += '\n'
+        numbered_items += '\n'
 
-        return items_str
+        return numbered_items
+
 
     def _kill_all(self, member, monster):
         """Kill all monsters of the same type"""
         self.cemetry.append(self.party.pop(self.party.index(member)))
         while monster in self.dungeon:
             self.dungeon.remove(monster)
+
 
     def _kill_one(self, member, monster):
         """Kill one monster"""

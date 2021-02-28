@@ -1,4 +1,7 @@
-monsters = '1, 2, 3, 4,'
-monsters = monsters[::-1].replace(',', '.', 1)[::-1]
+list_ = [2,3,4,5]
 
-print(monsters)
+if 1 or 6 in list_:
+    print('yes!')
+else:
+    print('no!')
+#print('yes' if 0 or 1 in list_ else 'no')
