@@ -119,6 +119,8 @@ class AdventureChest():
 
         while True:
             black_and_white_list = self.party + self.dungeon
+            if not black_and_white_list:
+                break
             print("Выберете кубик партии или подземелья(оставьте ввод пустым если выбор окончен): ")
             item = self._get_item(black_and_white_list)
             if item == '':
@@ -159,6 +161,8 @@ class AdventureChest():
                 # Moves dragons to dragons' lair
                 if 'Дракон' in self.dungeon:
                     self._dragon_lair()
+                # Standart action
+                action = FIGHT
 
                 # Break the cycle if no monsters left
                 if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
@@ -198,13 +202,13 @@ class AdventureChest():
         if "Свиток" in dragon_slayers:
             dragon_slayers.remove('Свиток')
         # Checks ability to fight
-        if len(dragon_slayers) < 3:
+        if len(dragon_slayers) < self.settings.dragon_slayers_number:
             print("You can't fight with the dragon\n")
             return
 
         # Choosing member who will fight with a dragon
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
-        for i in range(3):
+        for i in range(self.settings.dragon_slayers_number):
             dragon_slayer = self._get_item(dragon_slayers)
             dragon_slayers.remove(dragon_slayer)
             self.party.remove(dragon_slayer)

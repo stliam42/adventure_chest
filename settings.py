@@ -4,3 +4,4 @@ class Settings():
     def __init__(self):
         self.time_delay = 0.5
         self.amount_of_dice = 7
+        self.dragon_slayers_number = 3
