@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>067cfb85-b9a8-4d1e-b856-56fa3f7fce00</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>pa</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -35,6 +35,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="treasures.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
