@@ -20,11 +20,11 @@ class AdventureChest():
         self.white_die = White_die()
         self.black_die = Black_die()
 
-        # Player's party, monters, cemetry and dragon lists
+        # Player's party, monters, cemetery and dragon lists
         self.party = self.white_die.roll(self.settings.amount_of_dice)
         self.dungeon = []
         self.dragon_lair = []
-        self.cemetry = []
+        self.cemetery = []
 
 
     def run(self):
@@ -96,7 +96,7 @@ class AdventureChest():
         self._delay()
         print(f'Логово дракона - {self.dragon_lair}')
         self._delay()
-        print(f'Кладбище - {self.cemetry}\n')
+        print(f'Кладбище - {self.cemetery}\n')
         self._delay()
 
 
@@ -137,10 +137,10 @@ class AdventureChest():
         # Chooses the member who will drink potions
         print('Выбери сопартийца, который выпьет зелья:')
         member = self._get_item(self.party)
-        self.party.remove(member)
+        self._kill_the_member(member)
 
         # Process of drinking and adding new members
-        while "Зелье" in self.dungeon and self.cemetry:
+        while "Зелье" in self.dungeon and self.cemetery:
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
@@ -152,11 +152,14 @@ class AdventureChest():
         """Fighting cycle"""
         FIGHT = 1
         SCROLL = 2
+        request = ''
+        action_number = 1
         while True:
                 # Moves dragons to dragons' lair
                 if 'Дракон' in self.dungeon:
                     self._dragon_lair()
-                # Standart action
+                # Fight action
+                request += f'{action_number} - Деремся,'
                 action = FIGHT
 
                 # Break the cycle if no monsters left
@@ -290,16 +293,20 @@ class AdventureChest():
 
     def _kill_all(self, member, monster):
         """Kill all monsters of the same type"""
-        self.cemetry.append(self.party.pop(self.party.index(member)))
+        self._kill_the_member(member)
         while monster in self.dungeon:
             self.dungeon.remove(monster)
 
 
     def _kill_one(self, member, monster):
         """Kill one monster"""
-        self.cemetry.append(self.party.pop(self.party.index(member)))
+        self._kill_the_member(member)
         self.dungeon.remove(monster)
 
     def _delay(self):
         """Time delay"""
         sleep(self.settings.time_delay)
+
+    def _kill_the_member(self, member):
+        """Moves a member from the party to the cemetery"""
+        self.cemetery.append(self.party.pop(self.party.index(member)))
