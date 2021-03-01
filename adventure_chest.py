@@ -20,7 +20,7 @@ class AdventureChest():
         self.white_die = White_die()
         self.black_die = Black_die()
 
-        # Player's party, monters, cemetry and dragon lists
+        # Player's party, dungeon, cemetry and dragon_lair lists
         self.party = self.white_die.roll(self.settings.amount_of_dice)
         self.dungeon = []
         self.dragon_lair = []
@@ -163,6 +163,7 @@ class AdventureChest():
                 if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
                     "Слизень" not in self.dungeon):
                     break
+
                 # Standart action
                 action = FIGHT
 
