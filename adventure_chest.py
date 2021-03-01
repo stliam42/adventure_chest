@@ -3,6 +3,7 @@ from time import sleep
 from dice import White_die, Black_die
 from statistics import Stats
 from settings import Settings
+from treasures import Treasures
 
 class AdventureChest():
     """Adventure Chest game class"""
@@ -26,12 +27,15 @@ class AdventureChest():
         self.dragon_lair = []
         self.cemetery = []
 
+        # Treasures
+        self.treasures = Treasures(self)
+
 
     def run(self):
         """Run the game"""
         while True:
             self._new_dungeon_level()
-            self._fight()
+            self._fight_options()
             if self.stats.dragon_awake:
                 self._dragon_fight()
             self._reward()
@@ -148,47 +152,66 @@ class AdventureChest():
         self._print_party_info()
 
 
-    def _fight(self):
+    def _fight_options(self):
         """Fighting cycle"""
-        FIGHT = 1
-        SCROLL = 2
-        request = ''
-        action_number = 1
         while True:
-                # Moves dragons to dragons' lair
-                if 'Дракон' in self.dungeon:
-                    self._dragon_lair()
-                # Fight action
-                request += f'{action_number} - Деремся,'
-                action = FIGHT
+            # Moves dragons to dragons' lair
+            if 'Дракон' in self.dungeon:
+                self._dragon_lair()
 
-                # Break the cycle if no monsters left
-                if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
-                    "Слизень" not in self.dungeon):
-                    break
-                # Standart action
-                action = FIGHT
+            # Break the cycle if no monsters left
+            if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
+                "Слизень" not in self.dungeon):
+                break
 
-                # Fighting or using scroll
-                if "Свиток" in self.party:
-                    action = int(input('1 - Деремся, 2 - Используем свиток\n'))
+            # Prepare variables to create an action request
+            request = []
+            action_number = 1
 
-                # Fight
-                if action == FIGHT:
+            # Create a request containing all your options
+            # Fight option
+            request.append(f'{action_number} - Сражаться')
+            FIGHT = action_number
+            action_number += 1
+                
+            # Scroll option
+            if "Свиток" in self.party:
+                request.append(f'{action_number} - Использовать свиток')
+                SCROLL = action_number
+                action_number += 1
 
-                    print("Выберите сопартийца: ")
-                    member = self._get_item(self.party, del_scroll=True)
-                    print("Выберите монстра: ")
-                    monster = self._get_item(self.dungeon, del_chest=True, del_potion=True)
+            # Hero ability option
+            if not self.stats.ability_used:
+                request.append(f'{action_number} - Использовать способность героя')
+                ABILITY = action_number
+                action_number += 1
 
-                    #Checks and kills
-                    self._check_and_kill(member, monster)
+            # Treasure
+            if self.treasures:
+                request.append(f'{action_number} - Использовать сокровище')
+                TRAESURE = action_number
+                action_number += 1
+
+            print(*request, sep = ", ", end = '.\n')
+            action = int(input("Ваш выбор: "))
+
+            # Actions
+            if action == FIGHT:
+                self._fight()
+            elif action == SCROLL:
+                self._scroll()
+
+    def _fight(self):
+        """ Fighting with monsters"""
+        print("\nВыберите сопартийца: ")
+        member = self._get_item(self.party, del_scroll=True)
+        print("Выберите монстра: ")
+        monster = self._get_item(self.dungeon, del_chest=True, del_potion=True)
+
+        #Checks and kills
+        self._check_and_kill(member, monster)
         
-                    self._print_party_info()
-
-                # Scroll
-                elif action == SCROLL:
-                    self._scroll()
+        self._print_party_info()
 
     def _dragon_fight(self):
         """ Fighting with a dragon"""
