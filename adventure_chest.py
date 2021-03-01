@@ -63,6 +63,7 @@ class AdventureChest():
             dice_form = 'кубиков'
 
         print(f'{self.dungeon.count("Дракон")} {dice_form} "Дракон" перемещаются в логово дракона.\n')
+        self._delay()
 
         # Move dragons to lair
         while "Дракон" in self.dungeon:
@@ -90,19 +91,19 @@ class AdventureChest():
     def _print_party_info(self):
         """Print party and monsters lists"""
         print(f'Ваша команда - {self.party}')
-        sleep(self.settings.time_delay)
+        self._delay()
         print(f'Кубики подземелья - {self.dungeon}')
-        sleep(self.settings.time_delay)
+        self._delay()
         print(f'Логово дракона - {self.dragon_lair}')
-        sleep(self.settings.time_delay)
+        self._delay()
         print(f'Кладбище - {self.cemetry}\n')
-        sleep(self.settings.time_delay)
+        self._delay()
 
 
     def _print_dungeon_info(self):
         """Print trip and dungeon level"""
         print(f'Поход №{self.stats.trip_number}, Уровень подземелья {self.stats.dungeon_level}.')
-        sleep(self.settings.time_delay)
+        self._delay()
 
 
     def _scroll(self):
@@ -190,7 +191,7 @@ class AdventureChest():
         """ Fighting with a dragon"""
         # Creates set of party and removes scroll
         print("Битва с драконом!")
-        sleep(self.settings.time_delay)
+        self._delay()
 
         dragon_slayers = list(set(self.party))
         if "Свиток" in dragon_slayers:
@@ -299,4 +300,6 @@ class AdventureChest():
         self.cemetry.append(self.party.pop(self.party.index(member)))
         self.dungeon.remove(monster)
 
-
+    def _delay(self):
+        """Time delay"""
+        sleep(self.settings.time_delay)
