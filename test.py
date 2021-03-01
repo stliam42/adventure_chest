@@ -1,7 +1,11 @@
-list_ = [2,3,4,5]
+from treasures import Treasures
 
-if 1 or 6 in list_:
-    print('yes!')
-else:
-    print('no!')
-#print('yes' if 0 or 1 in list_ else 'no')
+tr = Treasures(1)
+
+if not tr:
+    print(0)
+
+tr.get_treasure(2)
+
+if tr:
+    print(1)

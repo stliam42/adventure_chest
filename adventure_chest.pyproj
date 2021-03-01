@@ -12,6 +12,7 @@
     <Name>adventure_chest</Name>
     <RootNamespace>adventure_chest</RootNamespace>
     <TestFramework>unittest</TestFramework>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,6 +35,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="treasures.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
