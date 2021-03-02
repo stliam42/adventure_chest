@@ -89,7 +89,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] #
+        self.dungeon = self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
@@ -143,11 +143,16 @@ class AdventureChest():
         member = self._get_item(self.party)
         self._kill_the_member(member)
 
-        # Process of drinking and adding new members
+        # Process of drinking and adding new members as long as there are potions and dice 
         while "Зелье" in self.dungeon and self.cemetery:
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
+            self.cemetery.pop()
+
+        # Revomes remaining potions
+        while "Зелье" in self.dungeon:
+            self.dungeon.remove("Зелье")
 
         self._print_party_info()
 
@@ -167,6 +172,7 @@ class AdventureChest():
             # Prepare variables to create an action request
             request = []
             action_number = 1
+            FIGHT = SCROLL = ABILITY = TREASURE = 0
 
             # Create a request containing all your options
             # Fight option
