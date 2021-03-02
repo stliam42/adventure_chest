@@ -13,10 +13,11 @@ class Treasures():
     def __bool__(self):
         return True if self._treasures else False
 
-    def get_treasure(self, i):
+    def get_treasure(self, n=1):
         """Gets i treasures"""
-        for _ in range(i):
+        for _ in range(n):
             self._treasures.append(self._treasures_list.pop(randint(0, len(self._treasures_list) - 1)))
+            print(f'Получено сокровище - {self._treasures[-1]}')
 
     def reset(self):
         """Reset treasures lists"""

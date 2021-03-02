@@ -1,4 +1,5 @@
 from time import sleep
+import os
 
 from dice import White_die, Black_die
 from statistics import Stats
@@ -50,6 +51,9 @@ class AdventureChest():
         self.dungeon.clear()
         self._create_dungeon()
 
+        # Clear text
+        # os.system('cls||clear')
+
         # Print info
         self._print_dungeon_info()
         self._print_party_info()
@@ -89,17 +93,25 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Сундук", "Сундук", "Сундук"] # self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
-        """Print party and monsters lists"""
+        """Print game info"""
+        # Party
         print(f'Ваша команда - {self.party}')
         self._delay()
+        #Treasures
+        if self.treasures:
+            print(f'Ваши сокровища - {self.treasures}')
+            self._delay()
+        # Dungeon
         print(f'Кубики подземелья - {self.dungeon}')
         self._delay()
+        # Dragon lair
         print(f'Логово дракона - {self.dragon_lair}')
         self._delay()
+        # Cemetery
         print(f'Кладбище - {self.cemetery}\n')
         self._delay()
 
@@ -136,25 +148,6 @@ class AdventureChest():
         self._print_party_info()
 
 
-    def _potion(self):
-        """Drinking potions at the end of dungeon"""
-        # Chooses the member who will drink potions
-        print('Выбери сопартийца, который выпьет зелья:')
-        member = self._get_item(self.party)
-        self._kill_the_member(member)
-
-        # Process of drinking and adding new members as long as there are potions and dice 
-        while "Зелье" in self.dungeon and self.cemetery:
-            self.dungeon.remove("Зелье")
-            print('Кого вы хотите добавить?')
-            self.party.append(self._get_item(self.white_die.sides))
-            self.cemetery.pop()
-
-        # Revomes remaining potions
-        while "Зелье" in self.dungeon:
-            self.dungeon.remove("Зелье")
-
-        self._print_party_info()
 
 
     def _battle(self):
@@ -250,15 +243,50 @@ class AdventureChest():
             print('Чистим сундуки и зелья:')
             action = self._get_item(self.dungeon)
             if action == "Сундук":
-                #self._chest() #create me
-                break
+                self._chest()
             elif action == "Зелье":
                 self._potion()
+
+
+    def _potion(self):
+        """Drinking potions at the end of dungeon"""
+        # Chooses the member who will drink potions
+        print('Выбери сопартийца, который выпьет зелья:')
+        member = self._get_item(self.party)
+        self._kill_the_member(member)
+
+        # Process of drinking and adding new members as long as there are potions and dice 
+        while "Зелье" in self.dungeon and self.cemetery:
+            self.dungeon.remove("Зелье")
+            print('Кого вы хотите добавить?')
+            self.party.append(self._get_item(self.white_die.sides))
+            self.cemetery.pop()
+
+        # Revomes remaining potions
+        while "Зелье" in self.dungeon:
+            self.dungeon.remove("Зелье")
+
+        self._print_party_info()
+
 
     def _chest(self):
         """Opens chests after battle"""
         print('Выбери сопартийца, который откроет сундуки:')
-        member = self._get_item(self.party)
+        member = self._get_item(self.party, del_scroll=True)
+
+        # Guardians and thieves open all chests
+        if member == "Вор" or member == "Страж":
+            while "Сундук" in self.dungeon:
+                self.treasures.get_treasure()
+                self.dungeon.remove("Сундук")
+
+        # Another members open one chest
+        else:
+            self.treasures.get_treasure()
+            self.dungeon.remove("Сундук")
+
+        self._kill_the_member(member)
+
 
     def _check_and_kill(self, member, monster):
         """ Checks a member and a monster interaction
