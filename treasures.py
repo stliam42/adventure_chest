@@ -21,10 +21,18 @@ class Treasures():
             self.ac_game.dungeon.remove('Сундук')
             self.ac_game.delay()
 
-    def use(self):
+    def use(self, type='all'):
         """Treasures using"""
+        if type == 'combat':
+            removed_treasures = ("Кольцо невидимости", "Драконьи чешуйки", 
+                                 "Эликсир", "Приманка для дракона", "Городской портал")
+        elif type == 'non-combat':
+            removed_treasures = ("Разящий меч", "Талисман", "Жезл силы", 
+                                 "Воровские инструменты", "Свиток", "Эликсир")
+        else:
+            removed_treasures = ()
         print("Какое сокровище вы хотите использовать:")
-        treasure = self.ac_game._get_item(self._treasures, True)
+        treasure = self.ac_game._get_item(self._treasures, True, removed_treasures)
         if not treasure:
             return
         if treasure == "Разящий меч":

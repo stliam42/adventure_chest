@@ -125,7 +125,7 @@ class AdventureChest():
 
     def _scroll(self):
         """Using a scroll"""
-        self.party.remove("Свиток")
+        self.cemetery.append(self.party.pop(self.party.index("Свиток")))
         white_reroll_list = []
         black_reroll_list = []
 
@@ -201,14 +201,14 @@ class AdventureChest():
             elif action == ABILITY:
                 pass
             elif action == TREASURE:
-                self.treasures.use()
+                self.treasures.use(type='non-combat')
 
     def _fight(self):
         """ Fighting with monsters"""
         print("\nВыберите сопартийца: ")
-        member = self._get_item(self.party, "Свиток")
+        member = self._get_item(self.party, False, "Свиток")
         print("Выберите монстра: ")
-        monster = self._get_item(self.dungeon, "Сундук", "Зелье")
+        monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
         #Checks and kills
         self._check_and_kill(member, monster)
@@ -344,7 +344,7 @@ class AdventureChest():
             return False if index == len(unique_list) else unique_list[index]
 
 
-    def _get_items_str(self, items_list, back=False):
+    def _get_items_str(self, items_list, back):
         """Creating a string of numbered items in a list
             if 'back' - add extra index to come back"""
         numbered_items = ""
