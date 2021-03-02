@@ -71,7 +71,7 @@ class AdventureChest():
             dice_form = 'кубиков'
 
         print(f'{self.dungeon.count("Дракон")} {dice_form} "Дракон" перемещаются в логово дракона.\n')
-        self._delay()
+        self.delay()
 
         # Move dragons to lair
         while "Дракон" in self.dungeon:
@@ -93,33 +93,34 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Сундук", "Сундук", "Сундук"] # self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = self.black_die.roll(monster_num) # ["Сундук", "Сундук", "Сундук"] # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
         """Print game info"""
         # Party
         print(f'Ваша команда - {self.party}')
-        self._delay()
+        self.delay()
         #Treasures
         if self.treasures:
             print(f'Ваши сокровища - {self.treasures}')
-            self._delay()
+            self.delay()
         # Dungeon
         print(f'Кубики подземелья - {self.dungeon}')
-        self._delay()
+        self.delay()
         # Dragon lair
         print(f'Логово дракона - {self.dragon_lair}')
-        self._delay()
+        self.delay()
         # Cemetery
         print(f'Кладбище - {self.cemetery}\n')
-        self._delay()
+        self.delay()
 
 
     def _print_dungeon_info(self):
         """Print trip and dungeon level"""
+        print('-'*100)
         print(f'Поход №{self.stats.trip_number}, Уровень подземелья {self.stats.dungeon_level}.')
-        self._delay()
+        self.delay()
 
 
     def _scroll(self):
@@ -133,8 +134,8 @@ class AdventureChest():
             if not black_and_white_list:
                 break
             print("Выберете кубик партии или подземелья(оставьте ввод пустым если выбор окончен): ")
-            item = self._get_item(black_and_white_list)
-            if item == '':
+            item = self._get_item(black_and_white_list, True)
+            if item == False:
                 break
             elif item in self.white_die.sides:
                 white_reroll_list.append(self.party.pop(self.party.index(item)))
@@ -146,8 +147,6 @@ class AdventureChest():
         self.dungeon.extend(self.black_die.roll(len(black_reroll_list)))
 
         self._print_party_info()
-
-
 
 
     def _battle(self):
@@ -188,7 +187,7 @@ class AdventureChest():
             # Treasure
             if self.treasures:
                 request.append(f'{action_number} - Использовать сокровище')
-                TRAESURE = action_number
+                TREASURE = action_number
                 action_number += 1
 
             print(*request, sep = ", ", end = '.\n')
@@ -199,13 +198,17 @@ class AdventureChest():
                 self._fight()
             elif action == SCROLL:
                 self._scroll()
+            elif action == ABILITY:
+                pass
+            elif action == TREASURE:
+                self.treasures.use()
 
     def _fight(self):
         """ Fighting with monsters"""
         print("\nВыберите сопартийца: ")
-        member = self._get_item(self.party, del_scroll=True)
+        member = self._get_item(self.party, "Свиток")
         print("Выберите монстра: ")
-        monster = self._get_item(self.dungeon, del_chest=True, del_potion=True)
+        monster = self._get_item(self.dungeon, "Сундук", "Зелье")
 
         #Checks and kills
         self._check_and_kill(member, monster)
@@ -216,7 +219,7 @@ class AdventureChest():
         """ Fighting with a dragon"""
         # Creates set of party and removes scroll
         print("Битва с драконом!")
-        self._delay()
+        self.delay()
 
         dragon_slayers = list(set(self.party))
         if "Свиток" in dragon_slayers:
@@ -239,13 +242,18 @@ class AdventureChest():
 
     def _reward(self):
         """Reward cycle"""
+        print("Получаем награду:")
         while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
-            print('Чистим сундуки и зелья:')
-            action = self._get_item(self.dungeon)
+            print(f'Кубики подземелья - {self.dungeon}')
+            self.delay()
+            print('Ваш выбор: ')
+            action = self._get_item(self.dungeon, True)
             if action == "Сундук":
                 self._chest()
             elif action == "Зелье":
                 self._potion()
+            else:
+                break
 
 
     def _potion(self):
@@ -272,24 +280,25 @@ class AdventureChest():
     def _chest(self):
         """Opens chests after battle"""
         print('Выбери сопартийца, который откроет сундуки:')
-        member = self._get_item(self.party, del_scroll=True)
+        member = self._get_item(self.party, True, "Свиток")
 
+        # Break if get_item returned False
+        if not member:
+            return
         # Guardians and thieves open all chests
         if member == "Вор" or member == "Страж":
             while "Сундук" in self.dungeon:
                 self.treasures.get_treasure()
-                self.dungeon.remove("Сундук")
 
         # Another members open one chest
         else:
             self.treasures.get_treasure()
-            self.dungeon.remove("Сундук")
 
         self._kill_the_member(member)
 
 
     def _check_and_kill(self, member, monster):
-        """ Checks a member and a monster interaction
+        """ Checks a member and a monster interaction_d
             and kills monsters
         """
         # Warrior
@@ -318,32 +327,33 @@ class AdventureChest():
             self._kill_all(member, monster)
 
 
-    def _get_item(self, items_list, del_scroll=False, del_chest=False, del_potion=False):
-        """Choosing item from 'items_list' and return it"""
+    def _get_item(self, items_list, back=False, *delete_items):
+        """Choosing item from 'items_list' and return it
+            return False if exception was raised"""
         unique_list = sorted(list(set(items_list)))
 
         # Deleting scrolls, chests and potions of necessity
-        if 'Свиток' in unique_list and  del_scroll:
-            unique_list.remove('Свиток')
-        if "Сундук" in unique_list and del_chest:
-            unique_list.remove("Сундук")
-        if "Зелье" in unique_list and del_potion:
-            unique_list.remove("Зелье")
-
+        for item in delete_items:
+            if item in unique_list:
+                unique_list.remove(item)
         try:
-            item = unique_list[int(input(self._get_items_str(unique_list)))]
-        except:
-            return ''
+            index = int(input(self._get_items_str(unique_list, back)))
+        except ValueError:
+            print("Некорректный ввод")
         else:
-            return item
+            return False if index == len(unique_list) else unique_list[index]
 
 
-    def _get_items_str(self, items_list):
-        """Creating a string of numbered items in a list"""
+    def _get_items_str(self, items_list, back=False):
+        """Creating a string of numbered items in a list
+            if 'back' - add extra index to come back"""
         numbered_items = ""
 
         for i in range(len(items_list)):
             numbered_items += f'{items_list[i]} - {i}, '
+
+        if back:
+            numbered_items += f'Назад - {len(items_list)}, ' 
 
         # Replace the last comma with a period
         numbered_items = numbered_items[::-1].replace(',', '.', 1)[::-1]
@@ -365,9 +375,11 @@ class AdventureChest():
         self._kill_the_member(member)
         self.dungeon.remove(monster)
 
-    def _delay(self):
+
+    def delay(self):
         """Time delay"""
         sleep(self.settings.time_delay)
+
 
     def _kill_the_member(self, member):
         """Moves a member from the party to the cemetery"""

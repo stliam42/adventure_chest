@@ -16,12 +16,27 @@ class Treasures():
     def get_treasure(self, n=1):
         """Gets i treasures"""
         for _ in range(n):
-            self._treasures.append(self._treasures_list.pop(randint(0, len(self._treasures_list) - 1)))
+            self._treasures.append(self._treasures_pull.pop(randint(0, len(self._treasures_pull) - 1)))
             print(f'Получено сокровище - {self._treasures[-1]}')
+            self.ac_game.dungeon.remove('Сундук')
+            self.ac_game.delay()
+
+    def use(self):
+        """Treasures using"""
+        print("Какое сокровище вы хотите использовать:")
+        treasure = self.ac_game._get_item(self._treasures, True)
+        if not treasure:
+            return
+        if treasure == "Разящий меч":
+            self._sword()
+
+    def _sword(self):
+        """You can use sword like a warrior"""
+        self._treasures_pull.append(self._treasures.pop(self._treasures.index(treasure)))
 
     def reset(self):
         """Reset treasures lists"""
-        self._treasures_list = [ "Разящий меч", "Разящий меч", "Разящий меч",
+        self._treasures_pull = [ "Разящий меч", "Разящий меч", "Разящий меч",
                                 "Талисман", "Талисман", "Талисман",
                                 "Жезл силы", "Жезл силы", "Жезл силы",
                                 "Воровские инструменты", "Воровские инструменты", "Воровские инструменты",
