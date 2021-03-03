@@ -204,7 +204,7 @@ class AdventureChest():
                 self.treasures.use(type='non-combat')
 
     def _fight(self):
-        """ Fighting with monsters"""
+        """Fighting with monsters"""
         print("\nВыберите сопартийца: ")
         member = self._get_item(self.party, False, "Свиток")
         print("Выберите монстра: ")
@@ -216,7 +216,7 @@ class AdventureChest():
         self._print_party_info()
 
     def _dragon_fight(self):
-        """ Fighting with a dragon"""
+        """Fighting with a dragon"""
         # Creates set of party and removes scroll
         print("Битва с драконом!")
         self.delay()
@@ -342,6 +342,10 @@ class AdventureChest():
             print("Некорректный ввод")
         else:
             return False if index == len(unique_list) else unique_list[index]
+
+    def get_member(self, members_list):
+        """Get a member from the member list and treasure list, if any"""
+        pass
 
 
     def _get_items_str(self, items_list, back):
