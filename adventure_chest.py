@@ -204,7 +204,7 @@ class AdventureChest():
                 self.treasures.use(type='non-combat')
 
     def _fight(self):
-        """ Fighting with monsters"""
+        """Fighting with monsters"""
         print("\nВыберите сопартийца: ")
         member = self._get_item(self.party, False, "Свиток")
         print("Выберите монстра: ")
@@ -216,7 +216,7 @@ class AdventureChest():
         self._print_party_info()
 
     def _dragon_fight(self):
-        """ Fighting with a dragon"""
+        """Fighting with a dragon"""
         # Creates set of party and removes scroll
         print("Битва с драконом!")
         self.delay()
@@ -301,6 +301,8 @@ class AdventureChest():
         """ Checks a member and a monster interaction_d
             and kills monsters
         """
+        assert member in self.white_die.sides, "Пришло что-то не то"
+
         # Warrior
         if member == "Воин": 
             if monster == "Гоблин":
@@ -326,6 +328,7 @@ class AdventureChest():
         elif member == "Страж":
             self._kill_all(member, monster)
 
+        self._kill_the_member(member)
 
     def _get_item(self, items_list, back=False, *delete_items):
         """Choosing item from 'items_list' and return it
@@ -342,6 +345,10 @@ class AdventureChest():
             print("Некорректный ввод")
         else:
             return False if index == len(unique_list) else unique_list[index]
+
+    def get_member(self, members_list):
+        """Get a member from the member list and treasure list, if any"""
+        pass
 
 
     def _get_items_str(self, items_list, back):
@@ -365,14 +372,12 @@ class AdventureChest():
 
     def _kill_all(self, member, monster):
         """Kill all monsters of the same type"""
-        self._kill_the_member(member)
         while monster in self.dungeon:
             self.dungeon.remove(monster)
 
 
     def _kill_one(self, member, monster):
         """Kill one monster"""
-        self._kill_the_member(member)
         self.dungeon.remove(monster)
 
 
