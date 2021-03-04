@@ -1,11 +1,10 @@
+treasure = ['sword', 'shield', 'gun']
+
+gear = ['sword']+['gun'] * 3 + ['gun'] * 4
+
+print(gear)
+
 from treasures import Treasures
 
-tr = Treasures(1)
-
-if not tr:
-    print(0)
-
-tr.get_treasure(2)
-
-if tr:
-    print(1)
+t = Treasures(1)
+print(t._treasures_pull, len(t._treasures_pull))

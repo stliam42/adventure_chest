@@ -206,7 +206,7 @@ class AdventureChest():
     def _fight(self):
         """Fighting with monsters"""
         print("\nВыберите сопартийца: ")
-        member = self._get_item(self.party, False, "Свиток")
+        member = self._get_member(scroll=False)
         print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
@@ -260,11 +260,11 @@ class AdventureChest():
         """Drinking potions at the end of dungeon"""
         # Chooses the member who will drink potions
         print('Выбери сопартийца, который выпьет зелья:')
-        member = self._get_item(self.party)
+        member = self._get_member()
         self._kill_the_member(member)
 
         # Process of drinking and adding new members as long as there are potions and dice 
-        while "Зелье" in self.dungeon and self.cemetery:
+        while "Зелье" in self.dungeon and len(self.party) < 7:
             self.dungeon.remove("Зелье")
             print('Кого вы хотите добавить?')
             self.party.append(self._get_item(self.white_die.sides))
@@ -280,7 +280,7 @@ class AdventureChest():
     def _chest(self):
         """Opens chests after battle"""
         print('Выбери сопартийца, который откроет сундуки:')
-        member = self._get_item(self.party, True, "Свиток")
+        member = self._get_member(scroll=False)
 
         # Break if get_item returned False
         if not member:
@@ -346,21 +346,35 @@ class AdventureChest():
         else:
             return False if index == len(unique_list) else unique_list[index]
 
-    def get_member(self, members_list):
+    def _get_member(self, scroll=True):
         """Get a member from the member list and treasure list, if any"""
-        pass
+        unique_members = sorted(list(set(self.party)))
+
+        # Deleting scroll
+        if not scroll and "Свиток" in unique_members:
+            unique_members.remove("Свиток")
+
+        try:
+            index = int(input(self._get_items_str(unique_members, treasure=self.treasures.is_combat)))
+        except ValueError:
+            print("Некорректный ввод")
+        else:
+            return self.treasures.use_combat() if index == len(unique_members) else unique_members[index]
 
 
-    def _get_items_str(self, items_list, back):
+    def _get_items_str(self, items_list, back=False, treasure=False):
         """Creating a string of numbered items in a list
             if 'back' - add extra index to come back"""
         numbered_items = ""
 
-        for i in range(len(items_list)):
-            numbered_items += f'{items_list[i]} - {i}, '
+        for index, item in enumerate(items_list):
+            numbered_items += f'{item} - {index}, '
 
         if back:
             numbered_items += f'Назад - {len(items_list)}, ' 
+
+        if treasure:
+            numbered_items += f'Использовать сокровище - {len(items_list)}, '
 
         # Replace the last comma with a period
         numbered_items = numbered_items[::-1].replace(',', '.', 1)[::-1]
