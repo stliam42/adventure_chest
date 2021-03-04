@@ -298,36 +298,21 @@ class AdventureChest():
 
 
     def _check_and_kill(self, member, monster):
-        """ Checks a member and a monster interaction_d
+        """ Checks a member and a monster interaction
             and kills monsters
         """
         assert member in self.white_die.sides, "Пришло что-то не то"
-
-        # Warrior
-        if member == "Воин": 
-            if monster == "Гоблин":
-                self._kill_all(member, monster)
-            else:
-                self._kill_one(member, monster)
-        # Cleric
-        elif member == "Клирик":
-            if monster == "Скелет":
-                self._kill_all(member, monster)
-            else:
-                self._kill_one(member, monster)
-        # Magician
-        elif member == "Маг":
-            if monster == "Слизень":
-                self._kill_all(member, monster)
-            else:
-                self._kill_one(member, monster)
-        # Theif
-        elif member == "Вор":
-            self._kill_one(member, monster)
-        # Guardian
-        elif member == "Страж":
+        
+        # Kill monsters
+        if (member == "Воин" and monster == "Гоблин" or
+            member == "Клирик" and monster == "Скелет" or
+            member == "Маг" and monster == "Слизень" or
+            member == "Страж"):
             self._kill_all(member, monster)
+        else:
+            self._kill_one(member, monster)
 
+        # Kill members
         self._kill_the_member(member)
 
     def _get_item(self, items_list, back=False, *delete_items):

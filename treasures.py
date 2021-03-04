@@ -10,7 +10,11 @@ class Treasures():
                                    "Воровские инструменты", "Свиток", "Эликсир"}
         self.__non_combat_treasures = ("Кольцо невидимости", "Эликсир", 
                                        "Приманка для дракона", "Городской портал")
-        self.items = {'sword':"Разящий меч"}
+        self._items_to_units = {"Разящий меч" : "Воин",
+                      "Талисман" : "Клирик",
+                      "Жезл силы" : "Маг",
+                      "Воровские инструменты" : "Вор",
+                      "Свиток" : "Свиток"}
 
     def __repr__(self):
         return self._treasures
@@ -29,12 +33,16 @@ class Treasures():
             print(f"Получено сокровище - '{self._treasures[-1]}'")
             self.ac_game.dungeon.remove('Сундук')
             self.ac_game.delay()  
+        
 
-    def _sword(self):
-        """You can use sword like a warrior"""
-        self._treasures_pull.append(self._treasures.pop(self._treasures.index("Разящий меч")))
-        self.ac_game.party.insert(0, "Воин")
-        return "Воин"
+    def _member_giver(self, treasure):
+        """Returns treasure to the pull and returns member to game"""
+        
+
+        self._treasures_pull.append(self._treasures.pop(self._treasures.index(treasure)))
+        self.ac_game.party.insert(0, dictionary[treasure])
+        return dictionary[treasure]
+
 
     @property
     def is_combat(self):
@@ -47,12 +55,11 @@ class Treasures():
         if scroll and "Свиток" in unique_treasures:
             unique_treasures.remove("Свиток")
 
-        print("Какое сокровище использовать?")
+        print("Какое сокровище хотите использовать?")
 
         active_treasure = self.ac_game._get_item(unique_treasures)
         
-        if active_treasure == self.items['sword']:
-            return self._sword()
+        return self._member_giver(active_treasure)
 
     def reset(self):
         """Reset treasures lists"""
