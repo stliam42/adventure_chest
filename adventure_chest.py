@@ -37,8 +37,6 @@ class AdventureChest():
         while True:
             self._new_dungeon_level()
             self._battle()
-            if self.stats.dragon_awake:
-                self._dragon_fight()
             if "Сундук" in self.dungeon or "Зелье" in self.dungeon:
                 self._reward()
 
@@ -229,28 +227,46 @@ class AdventureChest():
     def _dragon_fight(self):
         """Fighting with a dragon"""
         # Creates set of party and removes scroll
+
+        if not self._dragon_kill_check():
+            print("Вы не можете победить дракона.")
+            return
+            #self._defeat() #CREATE ME
+
+        dragon_slayers = []
+
         print("\nБитва с драконом!")
         self.delay()
-
-        dragon_slayers = list(set(self.party))
-        if "Свиток" in dragon_slayers:
-            dragon_slayers.remove('Свиток')
-
-        # Checks ability to fight
-        if len(dragon_slayers) < self.settings.dragon_slayers_number:
-            print("You can't fight with the dragon\n")
-            return
 
         # Choosing units who will fight with a dragon
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
         for i in range(self.settings.dragon_slayers_number):
-            dragon_slayer = self._get_item(dragon_slayers)
-            dragon_slayers.remove(dragon_slayer)
+            print(f'Драконоборцы - {dragon_slayers}')
+            dragon_slayer = self._get_unit("Свиток", *dragon_slayers)
+            dragon_slayers.append(dragon_slayer)
             self.party.remove(dragon_slayer)
 
         print("Дракон побежден!")
         self.dragon_lair.clear()
         self.stats.dragon_awake = False
+
+
+    def _dragon_kill_check(self):
+        """Checks ability to kill a dragon"""
+
+        # Create party set and remove scroll
+        units = set(self.party)
+        if "Свиток" in units:
+            units.remove('Свиток')
+
+        # Creating combat treasures set and transfom it to units
+        combat_treasures_set = set(self.treasures) & self.treasures._combat_treasures
+        treasures_to_units = {self.treasures._treasure_to_unit_dict[treasure] for treasure in combat_treasures_set}
+
+        # Intersection 
+        potential_dragon_slayers = units | treasures_to_units
+
+        return True if len(potential_dragon_slayers) >= self.settings.dragon_slayers_number else False
 
 
     def _reward(self):
@@ -340,6 +356,7 @@ class AdventureChest():
             print("Некорректный ввод")
         else:
             return False if index == len(unique_list) else unique_list[index]
+
 
     def _get_unit(self, *del_units):
         """Get a unit from the party and treasures, if any"""
