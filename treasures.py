@@ -10,11 +10,13 @@ class Treasures():
                                    "Воровские инструменты", "Свиток", "Эликсир"}
         self.__non_combat_treasures = ("Кольцо невидимости", "Эликсир", 
                                        "Приманка для дракона", "Городской портал")
-        self._items_to_units = {"Разящий меч" : "Воин",
-                      "Талисман" : "Клирик",
-                      "Жезл силы" : "Маг",
-                      "Воровские инструменты" : "Вор",
-                      "Свиток" : "Свиток"}
+        self.items = {'sword':"Разящий меч"}
+
+        self._treasure_to_unit_dict = {"Разящий меч" : "Воин",
+                                       "Талисман" : "Клирик",
+                                       "Жезл силы" : "Маг",
+                                       "Воровские инструменты" : "Вор",
+                                       "Свиток" : "Свиток"}
 
     def __repr__(self):
         return self._treasures
@@ -37,11 +39,10 @@ class Treasures():
 
     def _member_giver(self, treasure):
         """Returns treasure to the pull and returns member to game"""
-        
 
         self._treasures_pull.append(self._treasures.pop(self._treasures.index(treasure)))
-        self.ac_game.party.insert(0, dictionary[treasure])
-        return dictionary[treasure]
+        self.ac_game.party.insert(0, self._treasure_to_unit_dict[treasure])
+        return self._treasure_to_unit_dict[treasure]
 
 
     @property
@@ -49,17 +50,22 @@ class Treasures():
         """Return True if there are some combat treasures"""
         return True if (self.__combat_treasures & set(self._treasures)) else False
 
-    def use_combat(self, scroll=True):
+
+    def use_combat(self, del_members):
         """Gets combat treasure, creates temporary unit in a party and returns it"""
         unique_treasures = list(set(self._treasures) & self.__combat_treasures)
-        if scroll and "Свиток" in unique_treasures:
-            unique_treasures.remove("Свиток")
+        
+        # Deleting treasures
+        for key, value in self._treasure_to_unit_dict.items():
+            if key in unique_treasures and value in del_members:
+                unique_treasures.remove(key)
 
         print("Какое сокровище хотите использовать?")
 
         active_treasure = self.ac_game._get_item(unique_treasures)
         
         return self._member_giver(active_treasure)
+
 
     def reset(self):
         """Reset treasures lists"""

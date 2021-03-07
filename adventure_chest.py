@@ -142,7 +142,7 @@ class AdventureChest():
             elif item in self.black_die.sides:
                 black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
 
-        # Extends party and dungeon lists with new members
+        # Extends party and dungeon lists with new rolls of dice
         self.party.extend(self.white_die.roll(len(white_reroll_list)))
         self.dungeon.extend(self.black_die.roll(len(black_reroll_list)))
 
@@ -206,14 +206,15 @@ class AdventureChest():
     def _fight(self):
         """Fighting with monsters"""
         print("\nВыберите сопартийца: ")
-        member = self._get_member(scroll=False)
+        unit = self._get_unit("Свиток")
         print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
         #Checks and kills
-        self._check_and_kill(member, monster)
+        self._check_and_kill(unit, monster)
         
         self._print_party_info()
+
 
     def _dragon_fight(self):
         """Fighting with a dragon"""
@@ -229,7 +230,7 @@ class AdventureChest():
             print("You can't fight with the dragon\n")
             return
 
-        # Choosing member who will fight with a dragon
+        # Choosing units who will fight with a dragon
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
         for i in range(self.settings.dragon_slayers_number):
             dragon_slayer = self._get_item(dragon_slayers)
@@ -258,15 +259,17 @@ class AdventureChest():
 
     def _potion(self):
         """Drinking potions at the end of dungeon"""
-        # Chooses the member who will drink potions
+        # Chooses the units who will drink potions
+        
         print('Выбери сопартийца, который выпьет зелья:')
-        member = self._get_member()
-        self._kill_the_member(member)
+        unit = self._get_unit()
+        self._kill_the_unit(unit)
 
-        # Process of drinking and adding new members as long as there are potions and dice 
+        # Process of drinking and adding new units as long as there are potions and dice 
         while "Зелье" in self.dungeon and len(self.party) < 7:
+            print(f'Вы можете вернуть еще {self.settings.self.amount_of_dice - len(self.party)}сопартийца')
             self.dungeon.remove("Зелье")
-            print('Кого вы хотите добавить?')
+            print('Кого хотите вернуть?')
             self.party.append(self._get_item(self.white_die.sides))
             self.cemetery.pop()
 
@@ -280,40 +283,38 @@ class AdventureChest():
     def _chest(self):
         """Opens chests after battle"""
         print('Выбери сопартийца, который откроет сундуки:')
-        member = self._get_member(scroll=False)
+        unit = self._get_unit("Свиток")
 
         # Break if get_item returned False
-        if not member:
+        if not unit:
             return
         # Guardians and thieves open all chests
-        if member == "Вор" or member == "Страж":
+        if unit == "Вор" or unit == "Страж":
             while "Сундук" in self.dungeon:
                 self.treasures.get_treasure()
 
-        # Another members open one chest
+        # Another units open one chest
         else:
             self.treasures.get_treasure()
 
-        self._kill_the_member(member)
+        self._kill_the_unit(unit)
 
 
-    def _check_and_kill(self, member, monster):
-        """ Checks a member and a monster interaction
+    def _check_and_kill(self, unit, monster):
+        """ Checks a unit and a monster interaction
             and kills monsters
         """
-        assert member in self.white_die.sides, "Пришло что-то не то"
-        
-        # Kill monsters
-        if (member == "Воин" and monster == "Гоблин" or
-            member == "Клирик" and monster == "Скелет" or
-            member == "Маг" and monster == "Слизень" or
-            member == "Страж"):
-            self._kill_all(member, monster)
-        else:
-            self._kill_one(member, monster)
+        assert unit in self.white_die.sides, "Пришло что-то не то"
 
-        # Kill members
-        self._kill_the_member(member)
+        # Warrior
+        if (unit == "Воин" and monster == "Гоблин" or
+                unit == "Клирик" and monster == "Скелет" or
+                unit == "Маг" and monster == "Слизень" or
+                unit == "Страж"):
+            self._kill_all(monster)
+        else:
+            self._kill_one(monster)
+
 
     def _get_item(self, items_list, back=False, *delete_items):
         """Choosing item from 'items_list' and return it
@@ -331,20 +332,22 @@ class AdventureChest():
         else:
             return False if index == len(unique_list) else unique_list[index]
 
-    def _get_member(self, scroll=True):
-        """Get a member from the member list and treasure list, if any"""
-        unique_members = sorted(list(set(self.party)))
+    def _get_unit(self, *del_units):
+        """Get a unit from the party and treasures, if any"""
+        unique_units = sorted(list(set(self.party)))
 
-        # Deleting scroll
-        if not scroll and "Свиток" in unique_members:
-            unique_members.remove("Свиток")
+        # Deleting units
+        for unit in del_units:
+            if unit in unique_units:
+                unique_units.remove(unit)
 
         try:
-            index = int(input(self._get_items_str(unique_members, treasure=self.treasures.is_combat)))
+            index = int(input(self._get_items_str(unique_units, treasure=self.treasures.is_combat)))
         except ValueError:
             print("Некорректный ввод")
         else:
-            return self.treasures.use_combat() if index == len(unique_members) else unique_members[index]
+            return (self.treasures.use_combat(del_units) if index == len(unique_units)
+                    else unique_units[index])
 
 
     def _get_items_str(self, items_list, back=False, treasure=False):
@@ -369,13 +372,13 @@ class AdventureChest():
         return numbered_items
 
 
-    def _kill_all(self, member, monster):
+    def _kill_all(self, monster):
         """Kill all monsters of the same type"""
         while monster in self.dungeon:
             self.dungeon.remove(monster)
 
 
-    def _kill_one(self, member, monster):
+    def _kill_one(self, monster):
         """Kill one monster"""
         self.dungeon.remove(monster)
 
@@ -385,6 +388,6 @@ class AdventureChest():
         sleep(self.settings.time_delay)
 
 
-    def _kill_the_member(self, member):
-        """Moves a member from the party to the cemetery"""
-        self.cemetery.append(self.party.pop(self.party.index(member)))
+    def _kill_the_unit(self, unit):
+        """Moves a unit from the party to the cemetery"""
+        self.cemetery.append(self.party.pop(self.party.index(unit)))
