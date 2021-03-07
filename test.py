@@ -8,3 +8,8 @@ from treasures import Treasures
 
 t = Treasures(1)
 print(t._treasures_pull, len(t._treasures_pull))
+
+if *("sword", 'bullet') in gear:
+    print("YES!")
+else:
+    print("NO!")

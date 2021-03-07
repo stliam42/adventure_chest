@@ -39,7 +39,9 @@ class AdventureChest():
             self._battle()
             if self.stats.dragon_awake:
                 self._dragon_fight()
-            self._reward()
+            if "Сундук" in self.dungeon or "Зелье" in self.dungeon:
+                self._reward()
+
             
 
     def _new_dungeon_level(self):
@@ -56,7 +58,6 @@ class AdventureChest():
 
         # Print info
         self._print_dungeon_info()
-        self._print_party_info()
 
 
     def _dragon_lair(self):
@@ -93,13 +94,13 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = self.black_die.roll(monster_num) # ["Сундук", "Сундук", "Сундук"] # ["Дракон", "Дракон", "Дракон", "Гоблин"] # ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин"] # self.black_die.roll(monster_num) # ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
         """Print game info"""
         # Party
-        print(f'Ваша команда - {self.party}')
+        print(f'\nВаша команда - {self.party}')
         self.delay()
         #Treasures
         if self.treasures:
@@ -109,10 +110,9 @@ class AdventureChest():
         print(f'Кубики подземелья - {self.dungeon}')
         self.delay()
         # Dragon lair
-        print(f'Логово дракона - {self.dragon_lair}')
+        print(f'Логово дракона - {self.dragon_lair}\n')
         self.delay()
-        # Cemetery
-        print(f'Кладбище - {self.cemetery}\n')
+
         self.delay()
 
 
@@ -125,7 +125,7 @@ class AdventureChest():
 
     def _scroll(self):
         """Using a scroll"""
-        self.cemetery.append(self.party.pop(self.party.index("Свиток")))
+        self.party.remove("Свиток")
         white_reroll_list = []
         black_reroll_list = []
 
@@ -148,61 +148,72 @@ class AdventureChest():
 
         self._print_party_info()
 
+    def _action(self, fight):
+        """Return number of action and dictionary (action-number)"""
+        # Prepare variables to create an action request.
+        request = []
+        actions_dict = {}
+        action_number = 1
+
+        # Create a request containing all your options
+        # Fight option
+        request.append(f'{action_number} - Сражаться')
+        actions_dict['FIGHT'] = action_number
+        action_number += 1
+                
+        # Scroll option
+        if "Свиток" in self.party:
+            request.append(f'{action_number} - Использовать свиток')
+            actions_dict['SCROLL'] = action_number
+            action_number += 1
+
+        # Hero ability option
+        if not self.stats.ability_used:
+            request.append(f'{action_number} - Использовать способность героя')
+            actions_dict['ABILITY'] = action_number
+            action_number += 1
+
+        # Treasure
+        if self.treasures:
+            request.append(f'{action_number} - Использовать сокровище')
+            actions_dict['TREASURE'] = action_number
+            action_number += 1
+
+        print(*request, sep = ", ", end = '.\n')
+        action = int(input("Ваш выбор: "))
+
+        # Actions
+        if action == actions_dict['FIGHT']:
+            fight()
+        elif action == actions_dict['SCROLL']:
+            self._scroll()
+        elif action == actions_dict['ABILITY']:
+            pass                                    #CREATE ME
+        elif action == actions_dict['TREASURE']:
+            self.treasures.use(type='non-combat')   #FIXME
+
 
     def _battle(self):
         """Battle cycle"""
         while True:
+            self._print_party_info()
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
 
             # Break the cycle if no monsters left
             if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
-                "Слизень" not in self.dungeon):
+                "Слизень" not in self.dungeon and not self.stats.dragon_awake):
                 break
+            # Request an action with monsters fight
+            elif ("Гоблин" in self.dungeon or "Скелет" in self.dungeon or 
+                "Слизень" in self.dungeon):
+                self._action(self._fight)
+            # Request an action with dragon fight
+            else:
+                self._action(self._dragon_fight)
 
-            # Prepare variables to create an action request
-            request = []
-            action_number = 1
-            FIGHT = SCROLL = ABILITY = TREASURE = 0
-
-            # Create a request containing all your options
-            # Fight option
-            request.append(f'{action_number} - Сражаться')
-            FIGHT = action_number
-            action_number += 1
-                
-            # Scroll option
-            if "Свиток" in self.party:
-                request.append(f'{action_number} - Использовать свиток')
-                SCROLL = action_number
-                action_number += 1
-
-            # Hero ability option
-            if not self.stats.ability_used:
-                request.append(f'{action_number} - Использовать способность героя')
-                ABILITY = action_number
-                action_number += 1
-
-            # Treasure
-            if self.treasures:
-                request.append(f'{action_number} - Использовать сокровище')
-                TREASURE = action_number
-                action_number += 1
-
-            print(*request, sep = ", ", end = '.\n')
-            action = int(input("Ваш выбор: "))
-
-            # Actions
-            if action == FIGHT:
-                self._fight()
-            elif action == SCROLL:
-                self._scroll()
-            elif action == ABILITY:
-                pass
-            elif action == TREASURE:
-                self.treasures.use(type='non-combat')
-
+            
     def _fight(self):
         """Fighting with monsters"""
         print("\nВыберите сопартийца: ")
@@ -213,18 +224,18 @@ class AdventureChest():
         #Checks and kills
         self._check_and_kill(unit, monster)
         
-        self._print_party_info()
 
 
     def _dragon_fight(self):
         """Fighting with a dragon"""
         # Creates set of party and removes scroll
-        print("Битва с драконом!")
+        print("\nБитва с драконом!")
         self.delay()
 
         dragon_slayers = list(set(self.party))
         if "Свиток" in dragon_slayers:
             dragon_slayers.remove('Свиток')
+
         # Checks ability to fight
         if len(dragon_slayers) < self.settings.dragon_slayers_number:
             print("You can't fight with the dragon\n")
@@ -239,6 +250,7 @@ class AdventureChest():
 
         print("Дракон побежден!")
         self.dragon_lair.clear()
+        self.stats.dragon_awake = False
 
 
     def _reward(self):
@@ -271,7 +283,6 @@ class AdventureChest():
             self.dungeon.remove("Зелье")
             print('Кого хотите вернуть?')
             self.party.append(self._get_item(self.white_die.sides))
-            self.cemetery.pop()
 
         # Revomes remaining potions
         while "Зелье" in self.dungeon:
@@ -281,13 +292,10 @@ class AdventureChest():
 
 
     def _chest(self):
-        """Opens chests after battle"""
+        """Opens chests after battle and give truasure for every one"""
         print('Выбери сопартийца, который откроет сундуки:')
         unit = self._get_unit("Свиток")
 
-        # Break if get_item returned False
-        if not unit:
-            return
         # Guardians and thieves open all chests
         if unit == "Вор" or unit == "Страж":
             while "Сундук" in self.dungeon:
@@ -306,7 +314,6 @@ class AdventureChest():
         """
         assert unit in self.white_die.sides, "Пришло что-то не то"
 
-        # Warrior
         if (unit == "Воин" and monster == "Гоблин" or
                 unit == "Клирик" and monster == "Скелет" or
                 unit == "Маг" and monster == "Слизень" or
@@ -314,6 +321,8 @@ class AdventureChest():
             self._kill_all(monster)
         else:
             self._kill_one(monster)
+
+        self._kill_the_unit(unit)
 
 
     def _get_item(self, items_list, back=False, *delete_items):
