@@ -6,8 +6,12 @@ from statistics import Stats
 from settings import Settings
 from treasures import Treasures
 
+class Defeat(Exception):
+    pass
+
 class AdventureChest():
     """Adventure Chest game class"""
+    
 
     def __init__(self):
         """Inintialization parametrs"""
@@ -23,7 +27,7 @@ class AdventureChest():
         self.black_die = Black_die()
 
         # Player's party, monters, cemetery and dragon lists
-        self.party = self.white_die.roll(self.settings.amount_of_dice)
+        self.party = ['Воин', "Свиток"] # self.white_die.roll(self.settings.amount_of_dice) # 
         self.dungeon = []
         self.dragon_lair = []
         self.cemetery = []
@@ -35,12 +39,13 @@ class AdventureChest():
     def run(self):
         """Run the game"""
         while True:
-            self._new_dungeon_level()
-            self._battle()
-            if "Сундук" in self.dungeon or "Зелье" in self.dungeon:
-                self._reward()
-
-            
+            try:
+                self._new_dungeon_level()
+                self._battle()
+                if "Сундук" in self.dungeon or "Зелье" in self.dungeon:
+                    self._reward()
+            except Defeat:
+                self._defeat()
 
     def _new_dungeon_level(self):
         """Creating new dungeon level"""
@@ -111,8 +116,6 @@ class AdventureChest():
         print(f'Логово дракона - {self.dragon_lair}\n')
         self.delay()
 
-        self.delay()
-
 
     def _print_dungeon_info(self):
         """Print trip and dungeon level"""
@@ -144,7 +147,6 @@ class AdventureChest():
         self.party.extend(self.white_die.roll(len(white_reroll_list)))
         self.dungeon.extend(self.black_die.roll(len(black_reroll_list)))
 
-        self._print_party_info()
 
     def _action(self, fight):
         """Return number of action and dictionary (action-number)"""
@@ -195,6 +197,11 @@ class AdventureChest():
         """Battle cycle"""
         while True:
             self._print_party_info()
+
+            # If you have no units - you lose
+            if not self.party:
+                raise Defeat
+
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
@@ -214,6 +221,10 @@ class AdventureChest():
             
     def _fight(self):
         """Fighting with monsters"""
+        if not self.combat_capability_check():
+            print("Вы не можете сражаться.")
+            raise Defeat
+
         print("\nВыберите сопартийца: ")
         unit = self._get_unit("Свиток")
         print("Выберите монстра: ")
@@ -223,15 +234,13 @@ class AdventureChest():
         self._check_and_kill(unit, monster)
         
 
-
     def _dragon_fight(self):
         """Fighting with a dragon"""
         # Creates set of party and removes scroll
 
-        if not self._dragon_kill_check():
+        if not self.combat_capability_check(self.settings.dragon_slayers_number):
             print("Вы не можете победить дракона.")
-            return
-            #self._defeat() #CREATE ME
+            raise Defeat
 
         dragon_slayers = []
 
@@ -251,7 +260,7 @@ class AdventureChest():
         self.stats.dragon_awake = False
 
 
-    def _dragon_kill_check(self):
+    def combat_capability_check(self, monsters_number=1):
         """Checks ability to kill a dragon"""
 
         # Create party set and remove scroll
@@ -266,7 +275,7 @@ class AdventureChest():
         # Intersection 
         potential_dragon_slayers = units | treasures_to_units
 
-        return True if len(potential_dragon_slayers) >= self.settings.dragon_slayers_number else False
+        return True if len(potential_dragon_slayers) >= monsters_number else False
 
 
     def _reward(self):
@@ -304,8 +313,6 @@ class AdventureChest():
         while "Зелье" in self.dungeon:
             self.dungeon.remove("Зелье")
 
-        self._print_party_info()
-
 
     def _chest(self):
         """Opens chests after battle and give truasure for every one"""
@@ -323,6 +330,8 @@ class AdventureChest():
 
         self._kill_the_unit(unit)
 
+    def _defeat(self):  #FIX ME
+        print("You lose")
 
     def _check_and_kill(self, unit, monster):
         """ Checks a unit and a monster interaction
