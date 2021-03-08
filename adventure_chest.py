@@ -215,29 +215,34 @@ class AdventureChest():
         actions_dict = {}
         action_number = 1
 
-        # Create a request containing all your options
-        # Fight option
-        request.append(f'{action_number} - Сражаться')
+        # Create a request containing all your possibilities
+        # Fight
+        request.append(f'Сражаться - {action_number}')
         actions_dict['FIGHT'] = action_number
         action_number += 1
                 
-        # Scroll option
+        # Scroll
         if "Свиток" in self.party:
-            request.append(f'{action_number} - Использовать свиток')
+            request.append(f'Использовать свиток - {action_number}')
             actions_dict['SCROLL'] = action_number
             action_number += 1
 
-        # Hero ability option
+        # Hero ability
         if not self.stats.ability_used:
-            request.append(f'{action_number} - Использовать способность героя')
+            request.append(f'Использовать способность героя - {action_number}')
             actions_dict['ABILITY'] = action_number
             action_number += 1
 
         # Treasure
         if self.treasures:
-            request.append(f'{action_number} - Использовать сокровище')
+            request.append(f'Использовать сокровище - {action_number}')
             actions_dict['TREASURE'] = action_number
-            #action_number += 1
+            action_number += 1
+
+        # Reatreat
+        request.append(f'Отступить - {action_number}')
+        actions_dict['RETREAT'] = action_number
+
 
         print(*request, sep = ", ", end = '.\n')
         while True:
@@ -252,12 +257,14 @@ class AdventureChest():
                 # Actions
                 if action == actions_dict['FIGHT']:
                     fight()
-                elif action == actions_dict['SCROLL']:
+                elif "Свиток" in self.party and action == actions_dict['SCROLL']:
                     self._scroll()
                 elif action == actions_dict['ABILITY']:
                     pass                                    #CREATE ME
-                elif action == actions_dict['TREASURE']:
+                elif self.treasures and action == actions_dict['TREASURE']:
                     self.treasures.use(type='non-combat')   #FIXME
+                elif action == actions_dict['RETREAT']:
+                    raise Defeat
                 break
 
     def _battle(self):
@@ -450,7 +457,7 @@ class AdventureChest():
     def _leave_the_dungeon(self, exp=True):
         """Leave the dungeon and get experience"""
         if exp:
-            self.stats.trip_exp += self.stats.dungeon_level
+            self.stats.trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
         else:
             self.stats.trip_exp = 0
 
@@ -528,6 +535,7 @@ class AdventureChest():
             numbered_items_list.append(f'Использовать сокровище - {len(items_list) + 1}')
 
         print(*numbered_items_list, sep=', ', end='.\n')
+
         while True:
             print('Ваш выбор: ', end='')
 

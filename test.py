@@ -1,7 +1,7 @@
-numbers = [1,2,3,4,5,6,7,8]
+from treasures import Treasures
+from adventure_chest import AdventureChest
+tr = Treasures(AdventureChest())
+tr.get_treasure(10)
+exp = tr.count_exp()
 
-def power(numbers_list: list, index: int) -> set:
-    x = (numbers_list[index], numbers_list[index]**2)
-    return x
-
-print(power(numbers, 5))
+print(exp)

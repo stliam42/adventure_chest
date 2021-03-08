@@ -75,6 +75,14 @@ class Treasures():
         self.ac_game.party.insert(0, self._treasure_to_unit_dict[active_treasure])
         return self._treasure_to_unit_dict[active_treasure]
 
+    def count_exp(self) -> int:
+        """Count treasures experience"""
+        exp = len(self._treasures)
+        for treasure in self._treasures:
+            if treasure == "Городской портал":
+                exp += 1
+        exp += self._treasures.count("Драконьи чешуйки")//2 * 2
+        return exp
 
     def reset(self):
         """Reset treasures lists"""
