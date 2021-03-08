@@ -1,5 +1,7 @@
 from random import randint
 
+from exceptions import Leave
+
 class Treasures():
     """Treasures class for AC game"""
 
@@ -83,7 +85,6 @@ class Treasures():
         return self._treasure_to_unit_dict[active_treasure]
 
 
-    @property
     def is_noncombat(self):
         """Return True if there are some noncombat treasures"""
         return True if (self._noncombat_treasures & set(self._treasures)) else False
@@ -122,7 +123,7 @@ class Treasures():
                 self.ac_game.dungeon[i] = "Дракон"
 
         elif active_treasure == "Городской портал": #FIXME
-            self.ac_game._leave_the_dungeon()
+            raise Leave
 
     def count_exp(self) -> int:
         """Count treasures experience"""

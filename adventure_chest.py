@@ -5,9 +5,7 @@ from dice import White_die, Black_die
 from statistics import Stats
 from settings import Settings
 from treasures import Treasures
-
-class Defeat(Exception):
-    pass
+from exceptions import Defeat, Leave
 
 class AdventureChest():
     """Adventure Chest game class"""
@@ -71,6 +69,10 @@ class AdventureChest():
                 self._regrouping()
             except Defeat:
                 self._defeat()
+            except Leave:
+                print('Вы восстанавливаете силы и готовитесь к следующему походу:')
+                self.delay()
+                self._leave_the_dungeon()
     
 
     def _end_of_game(self):
@@ -79,7 +81,7 @@ class AdventureChest():
         self.delay()
         print("Игра закончена.\n")
         self.delay()
-        print(f"Ваш опыт - {self.stats.exp}\n")
+        print(f"Ваш опыт - {self.stats.exp}.\n")
         self.delay()
         print("Начать игру заново? (да/нет)")
         self.delay()
@@ -239,7 +241,7 @@ class AdventureChest():
             action_number += 1
 
         # Treasure
-        if self.treasures.is_noncombat:
+        if self.treasures.is_noncombat():
             request.append(f'Использовать сокровище - {action_number}')
             TREASURE = action_number
             action_number += 1
@@ -436,7 +438,7 @@ class AdventureChest():
         else:
             while True:
                 try:
-                    print("Отдых в таверне - 1, Идти дальше - 2")
+                    print("Отдых в таверне - 1, Идти дальше - 2.")
                     self.delay()
                     action = int(input("Ваш выбор: "))
                     print('')
@@ -447,11 +449,7 @@ class AdventureChest():
                         raise ValueError
                     # Leave the dungeon
                     elif action == 1:
-                        print('Вы восстанавливаете силы и готовитесь к следующему походу:')
-                        self.delay()
-                        print(f'Получено {self.stats.dungeon_level} ед. опыта.')
-                        self.delay()
-                        self._leave_the_dungeon()
+                        raise Leave
 
                     # New level
                     elif action == 2:
@@ -464,6 +462,10 @@ class AdventureChest():
     def _leave_the_dungeon(self, exp=True):
         """Leave the dungeon and get experience"""
         if exp:
+            print(f'Получено {self.stats.dungeon_level} ед. опыта за уровень подземелья.')
+            self.delay()
+            print(f'Получено {self.treasures.count_exp()} ед. опыта за сокровища.')
+            self.delay()
             self.stats.trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
         else:
             self.stats.trip_exp = 0
