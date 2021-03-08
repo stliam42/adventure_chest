@@ -37,14 +37,16 @@ class Treasures():
 
     def __bool__(self):
         return True if self._treasures else False
-
+    def clear(self):
+        self._treasures.clear()
 
     def get_treasure(self, n=1):
         """Gets i treasures"""
         for _ in range(n):
             self._treasures.append(self._treasures_pull.pop(randint(0, len(self._treasures_pull) - 1)))
             print(f"Получено сокровище - '{self._treasures[-1]}'")
-            self.ac_game.dungeon.remove('Сундук')
+            if "Сундук" in self.ac_game.dungeon:
+                self.ac_game.dungeon.remove('Сундук')
             self.ac_game.delay()  
         
 

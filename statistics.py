@@ -15,4 +15,5 @@ class Stats():
 
         # Hero
         self.exp = 0
+        self.trip_exp = 0
         self.ability_used = False
