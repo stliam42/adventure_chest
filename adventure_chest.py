@@ -41,10 +41,15 @@ class AdventureChest():
     def _print_dungeon_settings(self):
         """Display dungeon settings"""
         print("Ваш герой - ???")
+        self.delay()
         print(f"Количество походов в подземелье - {self.settings.max_dungeon_trip}.")
+        self.delay()
         print(f"Максимальный уровень подземелья - {self.settings.max_dungeon_level}.")
+        self.delay()
         print(f"Количество кубиков партии - {self.settings.white_dice}.")
+        self.delay()
         print(f"Количество кубиков подземелья - {self.settings.white_dice}.")
+        self.delay()
 
 
     def run(self):
@@ -114,7 +119,7 @@ class AdventureChest():
     def _print_party_info(self):
         """Print game info"""
         # Party
-        print(f'\nВаша команда - {self.party}')
+        print(f'Ваша команда - {self.party}')
         self.delay()
         #Treasures
         if self.treasures:
@@ -131,34 +136,50 @@ class AdventureChest():
     def _print_dungeon_info(self):
         """Print trip and dungeon level"""
         print('-'*100)
-        print(f'Поход №{self.stats.trip_number}, Уровень подземелья {self.stats.dungeon_level}.')
+        print(f'Поход №{self.stats.trip_number}, Уровень подземелья {self.stats.dungeon_level}.\n')
         self.delay()
 
 
     def _scroll(self):
         """Using a scroll"""
         self.party.remove("Свиток")
-        white_reroll_number = 0
-        black_reroll_number = 0
+        white_reroll_list = []
+        black_reroll_list = []
 
         while True:
+            print(f"Выбранные кубики партии для переброса - {white_reroll_list}.")
+            self.delay()
+            print(f'Выбранные кубики подземелья для переброса - {black_reroll_list}.')
+            self.delay()
+            print('')
+
             black_and_white_list = self.party + self.dungeon
             if not black_and_white_list:
                 break
-            print("Выберете кубик партии или подземелья:")
+            print("Выберете кубик партии или подземелья, который хотите перебросить:")
+            self.delay()
             item = self._get_item(black_and_white_list, back=True)
             if not item:
                 break
             elif item in self.party:
-                self.party.remove(item)
-                white_reroll_number += 1
+                white_reroll_list.append(self.party.pop(self.party.index(item)))
             elif item in self.dungeon:
-                self.dungeon.remove(item)
-                black_reroll_number += 1
+                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
+
+        # Roll new items
+        white_rerolled_list = self.white_die.roll(len(white_reroll_list))
+        black_rerolled_list = self.black_die.roll(len(black_reroll_list))
+
+        # Print transformation
+        print(f"Выбранные кубики партии {white_reroll_list} перебрасываются в {white_rerolled_list}.")
+        self.delay()
+        print(f"Выбранные кубики подземелья {black_reroll_list} перебрасываюся в {black_rerolled_list}.")
+        self.delay()
+        print('')
 
         # Extends party and dungeon lists with new rolls of dice
-        self.party.extend(self.white_die.roll(white_reroll_number))
-        self.dungeon.extend(self.black_die.roll(black_reroll_number))
+        self.party.extend(white_rerolled_list)
+        self.dungeon.extend(black_rerolled_list)
 
 
     def _action(self, fight):
@@ -194,6 +215,7 @@ class AdventureChest():
 
         print(*request, sep = ", ", end = '.\n')
         action = int(input("Ваш выбор: "))
+        print('')
 
         # Actions
         if action == actions_dict['FIGHT']:
@@ -238,7 +260,7 @@ class AdventureChest():
             print("Вы не можете сражаться.")
             raise Defeat
 
-        print("\nВыберите сопартийца: ")
+        print("Выберите сопартийца: ")
         unit = self._get_unit("Свиток")
         print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
@@ -257,18 +279,23 @@ class AdventureChest():
 
         dragon_slayers = []
 
-        print("\nБитва с драконом!")
+        print("Битва с драконом!\n")
         self.delay()
 
         # Choosing units who will fight with a dragon
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
+        self.delay()
         for i in range(self.settings.dragon_slayers_number):
             print(f'Драконоборцы - {dragon_slayers}')
+            self.delay()
             dragon_slayer = self._get_unit("Свиток", *dragon_slayers)
             dragon_slayers.append(dragon_slayer)
             self.party.remove(dragon_slayer)
 
-        print("Дракон побежден!")
+        print(f'Драконоборцы - {dragon_slayers}\n')
+        self.delay()
+        print("Дракон побежден!\n")
+        self.delay()
         self.dragon_lair.clear()
         self.stats.dragon_awake = False
 
@@ -411,6 +438,7 @@ class AdventureChest():
         print(*numbered_items_list, sep=', ', end='.\n')
         while True:
             print('Ваш выбор: ', end='')
+
             try:
                 index = int(input())
                 if index > len(numbered_items_list):
@@ -418,6 +446,7 @@ class AdventureChest():
             except ValueError:
                 print("Некорректный ввод")
             else:
+                print('')
                 return index - 1
 
 
