@@ -41,7 +41,7 @@ class AdventureChest():
         self.dungeon = []
         self.dragon_lair = []
         self.stats.dungeon_level = 1
-        self.treasures.clear()
+        #self.treasures.clear()
 
 
     def _print_dungeon_settings(self):
@@ -71,6 +71,7 @@ class AdventureChest():
                 self._regrouping()
             except Defeat:
                 self._defeat()
+    
 
     def _end_of_game(self):
         """End of game"""
@@ -139,13 +140,13 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
         """Print game info"""
         # Party
-        print(f'Ваша команда - {self.party}')
+        print(f'Кубики партии - {self.party}')
         self.delay()
         #Treasures
         if self.treasures:
@@ -173,9 +174,13 @@ class AdventureChest():
         black_reroll_list = []
 
         while True:
-            print(f"Выбранные кубики партии для переброса - {white_reroll_list}.")
+            print(f'Кубики партии - {self.party}')
             self.delay()
-            print(f'Выбранные кубики подземелья для переброса - {black_reroll_list}.')
+            print(f"Кубики партии, выбранные для переброса - {white_reroll_list}")
+            self.delay()
+            print(f'Кубики подземелья - {self.dungeon}')
+            self.delay()
+            print(f'Кубики подземелья, выбранные для переброса - {black_reroll_list}')
             self.delay()
             print('')
 
@@ -212,36 +217,36 @@ class AdventureChest():
         """Return number of action and dictionary (action-number)"""
         # Prepare variables to create an action request.
         request = []
-        actions_dict = {}
+        FIGHT=SCROLL=ABILITY=TREASURE=RETREAT=0
         action_number = 1
 
         # Create a request containing all your possibilities
         # Fight
         request.append(f'Сражаться - {action_number}')
-        actions_dict['FIGHT'] = action_number
+        FIGHT = action_number
         action_number += 1
                 
         # Scroll
         if "Свиток" in self.party:
             request.append(f'Использовать свиток - {action_number}')
-            actions_dict['SCROLL'] = action_number
+            SCROLL = action_number
             action_number += 1
 
         # Hero ability
         if not self.stats.ability_used:
             request.append(f'Использовать способность героя - {action_number}')
-            actions_dict['ABILITY'] = action_number
+            ABILITY = action_number
             action_number += 1
 
         # Treasure
-        if self.treasures:
+        if self.treasures.is_noncombat:
             request.append(f'Использовать сокровище - {action_number}')
-            actions_dict['TREASURE'] = action_number
+            TREASURE = action_number
             action_number += 1
 
         # Reatreat
         request.append(f'Отступить - {action_number}')
-        actions_dict['RETREAT'] = action_number
+        RETREAT = action_number
 
 
         print(*request, sep = ", ", end = '.\n')
@@ -255,15 +260,15 @@ class AdventureChest():
                 if action > action_number: raise ValueError
 
                 # Actions
-                if action == actions_dict['FIGHT']:
+                if action == FIGHT:
                     fight()
-                elif "Свиток" in self.party and action == actions_dict['SCROLL']:
+                elif action == SCROLL:
                     self._scroll()
-                elif action == actions_dict['ABILITY']:
+                elif action == ABILITY:
                     pass                                    #CREATE ME
-                elif self.treasures and action == actions_dict['TREASURE']:
-                    self.treasures.use(type='non-combat')   #FIXME
-                elif action == actions_dict['RETREAT']:
+                elif action == TREASURE:
+                    self.treasures.use_noncombat()  #FIXME
+                elif action == RETREAT:
                     raise Defeat
                 break
 
@@ -390,7 +395,9 @@ class AdventureChest():
 
         # Process of drinking and adding new units as long as there are potions and dice 
         while "Зелье" in self.dungeon and len(self.party) < 7:
-            print(f'Вы можете вернуть еще {self.settings.amount_of_dice - len(self.party)}сопартийца')
+            resurection_number = min((self.settings.white_dice - len(self.party), 
+                                      self.dungeon.count("Зелье")))
+            print(f'Вы можете вернуть еще {resurection_number} сопартийца.\n')
             self.dungeon.remove("Зелье")
             print('Кого хотите вернуть?')
             self.party.append(self._get_item(self.white_die.sides))
@@ -514,7 +521,7 @@ class AdventureChest():
                 unique_units.remove(unit)
 
         # Get index
-        index = self._get_index_from_items_list(unique_units, treasure=self.treasures.is_combat)
+        index = self._get_index_from_items_list(unique_units, treasure=self.treasures.is_combat(del_units))
         return (self.treasures.use_combat(del_units) if index == len(unique_units)
                 else unique_units[index])
 
@@ -529,7 +536,7 @@ class AdventureChest():
             numbered_items_list.append(f'{item} - {index}')
 
         if back:
-            numbered_items_list.append(f'Назад - {len(items_list) + 1}')
+            numbered_items_list.append(f'Далее - {len(items_list) + 1}')
 
         if treasure:
             numbered_items_list.append(f'Использовать сокровище - {len(items_list) + 1}')

@@ -7,9 +7,10 @@ class Treasures():
         self.reset()
         self.ac_game = ac_game
         self._combat_treasures = {"Разящий меч", "Талисман", "Жезл силы", 
-                                   "Воровские инструменты", "Свиток", "Эликсир"}
-        self.__non_combat_treasures = ("Кольцо невидимости", "Эликсир", 
-                                       "Приманка для дракона", "Городской портал")
+                                   "Воровские инструменты", "Свиток"}
+        self._noncombat_treasures = {"Кольцо невидимости", "Эликсир", "Свиток", 
+                                       "Приманка для дракона", "Городской портал"}
+
         self.items = {'sword':"Разящий меч"}
 
         self._treasure_to_unit_dict = {"Разящий меч" : "Воин",
@@ -37,8 +38,10 @@ class Treasures():
 
     def __bool__(self):
         return True if self._treasures else False
+
     def clear(self):
         self._treasures.clear()
+
 
     def get_treasure(self, n=1):
         """Gets i treasures"""
@@ -50,10 +53,15 @@ class Treasures():
             self.ac_game.delay()  
         
 
-    @property
-    def is_combat(self):
+    def is_combat(self, del_list):
         """Return True if there are some combat treasures"""
-        return True if (self._combat_treasures & set(self._treasures)) else False
+        combat_set = self._combat_treasures & set(self._treasures)
+
+        for key, value in self._treasure_to_unit_dict.items():
+            if key in combat_set and value in del_list:
+                combat_set.remove(key)
+
+        return True if combat_set else False
 
 
     def use_combat(self, del_members):
@@ -69,11 +77,52 @@ class Treasures():
 
         active_treasure = self.ac_game._get_item(unique_treasures)
 
-
         # Returns treasure to the pull and returns member to game
         self._treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
         self.ac_game.party.insert(0, self._treasure_to_unit_dict[active_treasure])
         return self._treasure_to_unit_dict[active_treasure]
+
+
+    @property
+    def is_noncombat(self):
+        """Return True if there are some noncombat treasures"""
+        return True if (self._noncombat_treasures & set(self._treasures)) else False
+
+
+    def use_noncombat(self):
+        """Using noncombat treasure
+        Requests for treasure that you want to use and use it"""
+
+        noncombat_treasures = set(self._treasures) & self._noncombat_treasures
+        print("Какое сокровище хотите использовать?")
+        self.ac_game.delay()
+        active_treasure = self.ac_game._get_item(noncombat_treasures)
+
+        self._treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
+
+        print(f"Вы использовали сокровище '{active_treasure}'.\n")
+        self.ac_game.delay()
+        if active_treasure == "Свиток":
+            self.ac_game.party.insert(0, active_treasure)
+            self.ac_game._scroll()
+
+        elif active_treasure == "Кольцо невидимости":
+            print("Все кубики из логова дракона были сброшены.\n")
+            self.ac_game.delay()
+            self.ac_game.dragon_lair.clear()
+            self.ac_game.stats.dragon_awake = False
+
+        elif active_treasure == "Эликсир":
+            pass
+
+        elif active_treasure == "Приманка для дракона":
+            print("Все кубики подземелья были превращены в драконьи морды.\n")
+            self.ac_game.delay()
+            for i in range(len(self.ac_game.dungeon)):
+                self.ac_game.dungeon[i] = "Дракон"
+
+        elif active_treasure == "Городской портал": #FIXME
+            self.ac_game._leave_the_dungeon()
 
     def count_exp(self) -> int:
         """Count treasures experience"""
@@ -99,7 +148,5 @@ class Treasures():
             ["Городской портал"] * 3
             )
 
-        self._treasures = [] 
-        """["Разящий меч", "Разящий меч", "Разящий меч",
-                                "Талисман", "Талисман", "Талисман",
-                                "Жезл силы", "Жезл силы", "Жезл силы"]"""
+        self._treasures = (["Городской портал"] * 3 + ["Приманка для дракона"] * 4 + ["Кольцо невидимости"] * 4 + ["Воровские инструменты"] * 3 +
+            ["Свиток"] * 3) # [] 
