@@ -27,13 +27,24 @@ class AdventureChest():
         self.black_die = Black_die()
 
         # Player's party, monters, cemetery and dragon lists
-        self.party = ['Воин', "Свиток"] # self.white_die.roll(self.settings.amount_of_dice) # 
+        self.party = self.white_die.roll(self.settings.white_dice) # ['Воин', "Свиток"] # 
         self.dungeon = []
         self.dragon_lair = []
         self.cemetery = []
 
         # Treasures
         self.treasures = Treasures(self)
+
+        self._print_dungeon_settings()
+
+
+    def _print_dungeon_settings(self):
+        """Display dungeon settings"""
+        print("Ваш герой - ???")
+        print(f"Количество походов в подземелье - {self.settings.max_dungeon_trip}.")
+        print(f"Максимальный уровень подземелья - {self.settings.max_dungeon_level}.")
+        print(f"Количество кубиков партии - {self.settings.white_dice}.")
+        print(f"Количество кубиков подземелья - {self.settings.white_dice}.")
 
 
     def run(self):
@@ -91,7 +102,7 @@ class AdventureChest():
     def _create_dungeon(self):
         """Creating new monsters list"""
         # Calculating available dice
-        available_dice = self.settings.amount_of_dice - len(self.dragon_lair)
+        available_dice = self.settings.black_dice - len(self.dragon_lair)
 
         # Limiting the number of dice 
         monster_num = min(available_dice, self.stats.dungeon_level)
@@ -127,25 +138,27 @@ class AdventureChest():
     def _scroll(self):
         """Using a scroll"""
         self.party.remove("Свиток")
-        white_reroll_list = []
-        black_reroll_list = []
+        white_reroll_number = 0
+        black_reroll_number = 0
 
         while True:
             black_and_white_list = self.party + self.dungeon
             if not black_and_white_list:
                 break
-            print("Выберете кубик партии или подземелья(оставьте ввод пустым если выбор окончен): ")
-            item = self._get_item(black_and_white_list, True)
-            if item == False:
+            print("Выберете кубик партии или подземелья:")
+            item = self._get_item(black_and_white_list, back=True)
+            if not item:
                 break
-            elif item in self.white_die.sides:
-                white_reroll_list.append(self.party.pop(self.party.index(item)))
-            elif item in self.black_die.sides:
-                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
+            elif item in self.party:
+                self.party.remove(item)
+                white_reroll_number += 1
+            elif item in self.dungeon:
+                self.dungeon.remove(item)
+                black_reroll_number += 1
 
         # Extends party and dungeon lists with new rolls of dice
-        self.party.extend(self.white_die.roll(len(white_reroll_list)))
-        self.dungeon.extend(self.black_die.roll(len(black_reroll_list)))
+        self.party.extend(self.white_die.roll(white_reroll_number))
+        self.dungeon.extend(self.black_die.roll(black_reroll_number))
 
 
     def _action(self, fight):
@@ -359,12 +372,10 @@ class AdventureChest():
         for item in delete_items:
             if item in unique_list:
                 unique_list.remove(item)
-        try:
-            index = int(input(self._get_items_str(unique_list, back)))
-        except ValueError:
-            print("Некорректный ввод")
-        else:
-            return False if index == len(unique_list) else unique_list[index]
+
+        index = self._get_index_from_items_list(unique_list, back)
+
+        return False if index == len(unique_list) else unique_list[index]
 
 
     def _get_unit(self, *del_units):
@@ -376,35 +387,38 @@ class AdventureChest():
             if unit in unique_units:
                 unique_units.remove(unit)
 
-        try:
-            index = int(input(self._get_items_str(unique_units, treasure=self.treasures.is_combat)))
-        except ValueError:
-            print("Некорректный ввод")
-        else:
-            return (self.treasures.use_combat(del_units) if index == len(unique_units)
-                    else unique_units[index])
+        # Get index
+        index = self._get_index_from_items_list(unique_units, treasure=self.treasures.is_combat)
+        return (self.treasures.use_combat(del_units) if index == len(unique_units)
+                else unique_units[index])
 
 
-    def _get_items_str(self, items_list, back=False, treasure=False):
+    def _get_index_from_items_list(self, items_list: list, 
+                                           back:bool=False, treasure:bool=False) -> int:
         """Creating a string of numbered items in a list
             if 'back' - add extra index to come back"""
-        numbered_items = ""
+        numbered_items_list = []
 
-        for index, item in enumerate(items_list):
-            numbered_items += f'{item} - {index}, '
+        for index, item in enumerate(items_list, start=1):
+            numbered_items_list.append(f'{item} - {index}')
 
         if back:
-            numbered_items += f'Назад - {len(items_list)}, ' 
+            numbered_items_list.append(f'Назад - {len(items_list) + 1}')
 
         if treasure:
-            numbered_items += f'Использовать сокровище - {len(items_list)}, '
+            numbered_items_list.append(f'Использовать сокровище - {len(items_list)} + 1')
 
-        # Replace the last comma with a period
-        numbered_items = numbered_items[::-1].replace(',', '.', 1)[::-1]
-        
-        numbered_items += '\n'
-
-        return numbered_items
+        print(*numbered_items_list, sep=', ', end='.\n')
+        while True:
+            print('Ваш выбор: ', end='')
+            try:
+                index = int(input())
+                if index > len(numbered_items_list):
+                    raise ValueError
+            except ValueError:
+                print("Некорректный ввод")
+            else:
+                return index - 1
 
 
     def _kill_all(self, monster):
@@ -425,4 +439,4 @@ class AdventureChest():
 
     def _kill_the_unit(self, unit):
         """Moves a unit from the party to the cemetery"""
-        self.cemetery.append(self.party.pop(self.party.index(unit)))
+        self.party.remove(unit)

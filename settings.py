@@ -3,5 +3,8 @@ class Settings():
 
     def __init__(self):
         self.time_delay = 0.1
-        self.amount_of_dice = 7
-        self.dragon_slayers_number = 3 # Number of member who will slay a dragon
+        self.white_dice = 7
+        self.black_dice = 7
+        self.max_dungeon_level = 10
+        self.max_dungeon_trip = 3
+        self.dragon_slayers_number = 3 # Number of units who will slay a dragon

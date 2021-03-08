@@ -1,9 +1,7 @@
-from treasures import Treasures
+numbers = [1,2,3,4,5,6,7,8]
 
-tr = Treasures(1)
+def power(numbers_list: list, index: int) -> set:
+    x = (numbers_list[index], numbers_list[index]**2)
+    return x
 
-for i in tr:
-    print(i)
-
-for i in tr:
-    print(i)
+print(power(numbers, 5))
