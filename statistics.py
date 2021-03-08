@@ -4,8 +4,8 @@ class Stats():
     def __init__(self):
         """Initialize game statistics"""
         # Dungeon
-        self.dungeon_level = 8
-        self.trip_number = 1
+        self.dungeon_level = 1
+        self.dungeon_trip = 1
         self.dragon_awake = False
 
         # Hero
