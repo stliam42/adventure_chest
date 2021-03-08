@@ -138,7 +138,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = self.black_die.roll(monster_num) # ["Дракон", "Дракон", "Дракон", "Гоблин"] #  ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
@@ -329,6 +329,11 @@ class AdventureChest():
         self.delay()
         print("Дракон побежден!\n")
         self.delay()
+
+        self.treasures.get_treasure()
+        print("Получена 1 ед. опыта\n")
+        self.delay()
+        self.stats.exp += 1
         self.dragon_lair.clear()
         self.stats.dragon_awake = False
 
@@ -427,7 +432,7 @@ class AdventureChest():
                         raise ValueError
                     # Leave the dungeon
                     elif action == 1:
-                        print('Вы восстанавливаете силы и готовитесь к следующему походу.')
+                        print('Вы восстанавливаете силы и готовитесь к следующему походу:')
                         self.delay()
                         print(f'Получено {self.stats.dungeon_level} ед. опыта.')
                         self.delay()

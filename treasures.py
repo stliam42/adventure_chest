@@ -44,7 +44,8 @@ class Treasures():
         for _ in range(n):
             self._treasures.append(self._treasures_pull.pop(randint(0, len(self._treasures_pull) - 1)))
             print(f"Получено сокровище - '{self._treasures[-1]}'")
-            self.ac_game.dungeon.remove('Сундук')
+            if "Сундук" in self.ac_game.dungeon:
+                self.ac_game.dungeon.remove('Сундук')
             self.ac_game.delay()  
         
 
