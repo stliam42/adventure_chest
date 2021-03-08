@@ -1,5 +1,5 @@
 from time import sleep
-import os
+import sys
 
 from dice import White_die, Black_die
 from statistics import Stats
@@ -27,9 +27,7 @@ class AdventureChest():
         self.black_die = Black_die()
 
         # Player's party, monters, cemetery and dragon lists
-        self._reset_party()
-        self.dungeon = []
-        self.dragon_lair = []
+        self._reset()
         self.cemetery = []
 
         # Treasures
@@ -37,8 +35,13 @@ class AdventureChest():
 
         self._print_dungeon_settings()
 
-    def _reset_party(self):
+    def _reset(self):
+        """Reset lists and part of stats"""
         self.party = self.white_die.roll(self.settings.white_dice)
+        self.dungeon = []
+        self.dragon_lair = []
+        self.stats.dungeon_level = 1
+
 
     def _print_dungeon_settings(self):
         """Display dungeon settings"""
@@ -57,6 +60,8 @@ class AdventureChest():
     def run(self):
         """Run the game"""
         while True:
+            if self.stats.dungeon_trip > self.settings.max_dungeon_trip:
+                self._end_of_game()
             try:
                 self._new_dungeon_level()
                 self._battle()
@@ -65,6 +70,28 @@ class AdventureChest():
                 self._regrouping()
             except Defeat:
                 self._defeat()
+
+    def _end_of_game(self):
+        """End of game"""
+        print('-' * 100)
+        self.delay()
+        print("Игра закончена.\n")
+        self.delay()
+        print(f"Ваш опыт - {self.stats.exp}\n")
+        self.delay()
+        print("Начать игру заново? (да/нет)")
+        self.delay()
+        while True:
+            answer = input("Ваш ответ: ").lower()
+            if answer == "да":
+                self.stats.reset()
+                return
+            elif answer == 'нет':
+                sys.exit()
+            else:
+                print('Некорректный ввод')
+                self.delay()
+
 
     def _new_dungeon_level(self):
         """Creating new dungeon level"""
@@ -209,22 +236,28 @@ class AdventureChest():
         if self.treasures:
             request.append(f'{action_number} - Использовать сокровище')
             actions_dict['TREASURE'] = action_number
-            action_number += 1
+            #action_number += 1
 
         print(*request, sep = ", ", end = '.\n')
-        action = int(input("Ваш выбор: "))
-        print('')
+        while True:
+            try:
+                action = int(input("Ваш выбор: "))
+                print('')
+            except ValueError:
+                print("Некорректный ввод")
+            else:
+                if action > action_number: raise ValueError
 
-        # Actions
-        if action == actions_dict['FIGHT']:
-            fight()
-        elif action == actions_dict['SCROLL']:
-            self._scroll()
-        elif action == actions_dict['ABILITY']:
-            pass                                    #CREATE ME
-        elif action == actions_dict['TREASURE']:
-            self.treasures.use(type='non-combat')   #FIXME
-
+                # Actions
+                if action == actions_dict['FIGHT']:
+                    fight()
+                elif action == actions_dict['SCROLL']:
+                    self._scroll()
+                elif action == actions_dict['ABILITY']:
+                    pass                                    #CREATE ME
+                elif action == actions_dict['TREASURE']:
+                    self.treasures.use(type='non-combat')   #FIXME
+                break
 
     def _battle(self):
         """Battle cycle"""
@@ -376,13 +409,15 @@ class AdventureChest():
         self.delay()
 
         if self.stats.dungeon_level == self.settings.max_dungeon_level:
-            print("Вы достигли максимального уровня подземелья!")
+            print("Вы достигли максимального уровня подземелья!\n")
+            self.delay()
             self._leave_the_dungeon()
 
         else:
             while True:
                 try:
                     print("Отдых в таверне - 1, Идти дальше - 2")
+                    self.delay()
                     action = int(input("Ваш выбор: "))
                     print('')
                 except ValueError:
@@ -395,21 +430,22 @@ class AdventureChest():
                         print('Вы восстанавливаете силы и готовитесь к следующему походу.')
                         self.delay()
                         print(f'Получено {self.stats.dungeon_level} ед. опыта.')
+                        self.delay()
                         self._leave_the_dungeon()
 
                     # New level
                     elif action == 2:
-                        print('Вы переходите к следующему уровню подземелья.')
+                        print('Вы переходите к следующему уровню подземелья.\n')
                         self.delay()
                         self.stats.dungeon_level += 1
                     break
 
+
     def _leave_the_dungeon(self):
         """Leave the dungeon and get experience"""
         self.stats.exp += self.stats.dungeon_level
-        self.stats.dungeon_level = 1
         self.stats.dungeon_trip += 1
-        self._reset_party()
+        self._reset()
 
     def _defeat(self):  #FIX ME
         print("You lose")
