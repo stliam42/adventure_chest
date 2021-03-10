@@ -185,6 +185,7 @@ class AdventureChest():
             print(f'Кубики подземелья, выбранные для переброса - {black_reroll_list}')
             self.delay()
             print('')
+            self.delay()
 
             black_and_white_list = self.party + self.dungeon
             if not black_and_white_list:
@@ -334,6 +335,7 @@ class AdventureChest():
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
         self.delay()
         for i in range(self.settings.dragon_slayers_number):
+            print(f'Кубики подземелья - {self.party}')
             print(f'Драконоборцы - {dragon_slayers}')
             self.delay()
             dragon_slayer = self._get_unit("Свиток", *dragon_slayers)
@@ -425,6 +427,7 @@ class AdventureChest():
 
         self._kill_the_unit(unit)
 
+
     def _regrouping(self):
         """Regrouping phase"""
         print("Вы зачистили подземелье!\n")
@@ -464,8 +467,11 @@ class AdventureChest():
         if exp:
             print(f'Получено {self.stats.dungeon_level} ед. опыта за уровень подземелья.')
             self.delay()
-            print(f'Получено {self.treasures.count_exp()} ед. опыта за сокровища.')
-            self.delay()
+
+            if self.treasures:
+                print(f'Получено {self.treasures.count_exp()} ед. опыта за сокровища.')
+                self.delay()
+
             self.stats.trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
         else:
             self.stats.trip_exp = 0
@@ -475,11 +481,12 @@ class AdventureChest():
         self._reset()
 
 
-    def _defeat(self):  #FIX ME
-        """If you lose your trip - you have no exp"""
+    def _defeat(self):
+        """Ends your trip - you have no exp"""
         print("Вы вынуждены бежать из подземелья: вы не получаете опыта за этот поход.")
         self.delay()
         self._leave_the_dungeon(exp=False)
+
 
     def _check_and_kill(self, unit, monster):
         """ Checks a unit and a monster interaction
