@@ -8,16 +8,18 @@ class Hero:
         self.is_ability_used = False
         self.upgraded = False
         self.ac_game = ac_game
+        self.passive()
 
     def passive(self):
         """Passive ability"""
         pass
 
-    def ability(self):
+    def ability(self, stage=None):
         """Active ability"""
         pass
 
     def upgrade_check(self):
+        """Checks experience and upgrade your abilities"""
         if self.ac_game.stats.exp >= 5:
             self.upgrade()
 
@@ -26,9 +28,9 @@ class Hero:
         self.upgraded = True
         pass
 
-    def ability_check(self) -> bool:
+    def ability_check(self, **kwargs) -> bool:
         """Check possibility to use active ability"""
-        return True
+        return False
 
     def __str__(self):
         return ((f"Ваш герой - \"{self.name}\".\nСпособность \"{self.ability_name}\" ") + 
@@ -43,15 +45,34 @@ class Spellcaster(Hero):
     """
 
     def __init__(self, ac_game):
-        super().__init__(self)
+        super().__init__(ac_game)
         self.name = "Заклинатель меча"
         self.ability_name = "Мистический клинок"
 
-
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
-        self.ac_game.unit_dict['warrior'] = ('Воин','Маг')
-        self.ac_game.unit_dict['mage'] = ('Воин','Маг')
+        self.ac_game.units_dict['warrior'] = ('Воин','Маг')
+        self.ac_game.units_dict['mage'] = ('Воин','Маг')
+
+    def ability(self, del_units):
+        """Spellcaster may be used as warrior or mage"""
+        units = ['Воин', 'Маг']
+        print("It's working")
+
+
+    def ability_check(self, usage=None, **kwargs):
+        """Spellcaster may be used as warrior or mage.
+           If game asks a unit - return True."""
+
+        own_units = ['Воин', 'Маг']
+
+        for del_unit in kwargs['del_units']:
+            if del_unit in own_units:
+                own_units.remove(del_unit)
+
+        return (True if usage == 'unit' and not self.is_ability_used
+                and own_units else False)
+
 
 
 

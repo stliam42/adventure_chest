@@ -154,7 +154,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
@@ -266,26 +266,25 @@ class AdventureChest():
         request.append(f'Отступить - {action_number}')
         RETREAT = action_number
 
-
         print(*request, sep = ", ", end = '.\n')
         while True:
             try:
                 action = int(input("Ваш выбор: "))
                 print('')
+                if action > action_number: 
+                    raise ValueError
             except ValueError:
                 print("Некорректный ввод")
             else:
-                if action > action_number: raise ValueError
-
                 # Actions
                 if action == FIGHT:
                     fight()
                 elif action == SCROLL:
                     self._scroll()
                 elif action == ABILITY:
-                    pass                                    #CREATE ME
+                    self.hero.ability()
                 elif action == TREASURE:
-                    self.treasures.use_noncombat()  #FIXME
+                    self.treasures.use_noncombat()
                 elif action == RETREAT:
                     raise Defeat
                 break
@@ -545,25 +544,47 @@ class AdventureChest():
                 unique_units.remove(unit)
 
         # Get index
-        index = self._get_index_from_items_list(unique_units, treasure=self.treasures.is_combat(del_units))
-        return (self.treasures.use_combat(del_units) if index == len(unique_units)
-                else unique_units[index])
+        request = self._get_index_from_items_list(unique_units, 
+                                                  treasure=self.treasures.is_combat(del_units),
+                                                  hero=self.hero.ability_check(usage='unit', del_units=del_units))
+        if isinstance(request, int):
+            return unique_units[request]
+        elif request == 'treasure':
+            return self.treasures.use_combat(del_units)
+        elif request == 'hero':
+            return self.hero.ability(del_units)
+
 
 
     def _get_index_from_items_list(self, items_list: list, 
-                                           back:bool=False, treasure:bool=False) -> int:
+                                           back:bool=False, 
+                                           treasure:bool=False, 
+                                           hero:bool=False) -> int:
+
         """Creating a string of numbered items in a list
             if 'back' - add extra index to come back"""
         numbered_items_list = []
+        aux_index = len(items_list)
+        BACK = TREASURE = HERO = 0
 
         for index, item in enumerate(items_list, start=1):
             numbered_items_list.append(f'{item} - {index}')
 
+        # Back option
         if back:
-            numbered_items_list.append(f'Далее - {len(items_list) + 1}')
-
+            aux_index += 1
+            BACK = aux_index
+            numbered_items_list.append(f'Далее - {aux_index}')
+        # Possibility to use treasure while choosing unit
         if treasure:
-            numbered_items_list.append(f'Использовать сокровище - {len(items_list) + 1}')
+            aux_index += 1
+            TREASURE = aux_index
+            numbered_items_list.append(f'Использовать сокровище - {aux_index}')
+        # Possibility to use hero ability while choosing unit
+        if hero:
+            aux_index += 1
+            HERO = aux_index
+            numbered_items_list.append(f'Использовать способность героя - {aux_index}')
 
         print(*numbered_items_list, sep=', ', end='.\n')
 
@@ -572,13 +593,21 @@ class AdventureChest():
 
             try:
                 index = int(input())
-                if index > len(numbered_items_list):
+                if index > aux_index or index <= 0:
                     raise ValueError
             except ValueError:
                 print("Некорректный ввод")
             else:
                 print('')
-                return index - 1
+                if index <= len(items_list):
+                    return index - 1
+                elif index == BACK:
+                    return 'back'
+                elif index == TREASURE:
+                    return 'treasure'
+                elif index == HERO:
+                    return 'hero'
+                
 
 
     def _kill_all(self, monster):

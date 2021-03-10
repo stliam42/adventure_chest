@@ -31,7 +31,6 @@ class Treasures():
             return result
         raise StopIteration
 
-
     def __repr__(self):
         return self._treasures
     
