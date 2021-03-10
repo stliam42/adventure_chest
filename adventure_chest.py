@@ -6,6 +6,7 @@ from statistics import Stats
 from settings import Settings
 from treasures import Treasures
 from exceptions import Defeat, Leave
+from hero import Spellcaster
 
 class AdventureChest():
     """Adventure Chest game class"""
@@ -32,11 +33,15 @@ class AdventureChest():
         self.cemetery = []
 
         # Units dictionary for heroes abilities
-        self.units_dict = {'Warior':"Воин", 
-                           "Cleric" : "Клирик", 
-                           "Mage" : "Маг", 
-                           "Thief": "Вор", 
-                           "Guardian" : "Страж"}
+        self.units_dict = {"warrior" : ("Воин"), 
+                           "cleric" : ("Клирик"), 
+                           "mage" : ("Маг"), 
+                           "thief": ("Вор"), 
+                           "guardian" : ("Страж"),
+                           "scroll" : ("Свиток"),
+                           }
+
+        self.hero = Spellcaster(self)
 
         # Print the settings of current dungeon
         self._print_dungeon_settings()
@@ -53,8 +58,6 @@ class AdventureChest():
 
     def _print_dungeon_settings(self):
         """Display dungeon settings"""
-        print("Ваш герой - ???")
-        self.delay()
         print(f"Количество походов в подземелье - {self.settings.max_dungeon_trip}.")
         self.delay()
         print(f"Максимальный уровень подземелья - {self.settings.max_dungeon_level}.")
@@ -156,6 +159,9 @@ class AdventureChest():
 
     def _print_party_info(self):
         """Print game info"""
+        # Hero info
+        print(self.hero)
+        self.delay()
         # Party
         print(f'Кубики партии - {self.party}')
         self.delay()
@@ -245,7 +251,7 @@ class AdventureChest():
             action_number += 1
 
         # Hero ability
-        if not self.stats.ability_used:
+        if self.hero.ability_check():
             request.append(f'Использовать способность героя - {action_number}')
             ABILITY = action_number
             action_number += 1
@@ -426,7 +432,7 @@ class AdventureChest():
         unit = self._get_unit("Свиток")
 
         # Guardians and thieves open all chests
-        if unit == "Вор" or unit == "Страж":
+        if unit in self.units_dict['theif'] or unit in self.units_dict['guardian']:
             while "Сундук" in self.dungeon:
                 self.treasures.get_treasure()
 
@@ -503,10 +509,10 @@ class AdventureChest():
         """
         assert unit in self.white_die.sides, "Пришло что-то не то"
 
-        if (unit == "Воин" and monster == "Гоблин" or
-                unit == "Клирик" and monster == "Скелет" or
-                unit == "Маг" and monster == "Слизень" or
-                unit == "Страж"):
+        if (unit in self.units_dict['warrior'] and monster == "Гоблин" or
+                unit in self.units_dict['cleric'] and monster == "Скелет" or
+                unit in self.units_dict['mage'] and monster == "Слизень" or
+                unit in self.units_dict['guardian']):
             self._kill_all(monster)
         else:
             self._kill_one(monster)
