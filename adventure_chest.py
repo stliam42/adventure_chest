@@ -31,15 +31,24 @@ class AdventureChest():
         self._reset()
         self.cemetery = []
 
+        # Units dictionary for heroes abilities
+        self.units_dict = {'Warior':"Воин", 
+                           "Cleric" : "Клирик", 
+                           "Mage" : "Маг", 
+                           "Thief": "Вор", 
+                           "Guardian" : "Страж"}
+
+        # Print the settings of current dungeon
         self._print_dungeon_settings()
 
+
     def _reset(self):
-        """Reset lists and part of stats"""
+        """Reset dungeon"""
         self.party = self.white_die.roll(self.settings.white_dice)
         self.dungeon = []
         self.dragon_lair = []
         self.stats.dungeon_level = 1
-        #self.treasures.clear()
+        self.treasures.clear()
 
 
     def _print_dungeon_settings(self):
