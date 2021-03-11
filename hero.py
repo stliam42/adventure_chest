@@ -1,21 +1,54 @@
+class Ability:
+    """Class for common hero abilities"""
+
+    @staticmethod
+    def unit_ability(hero, del_units:tuple) -> str:
+        """Ability which allows you to use hero as unit.
+           Returns unit"""
+
+        units = list(hero.units)
+        for del_unit in del_units:
+            if del_unit in units:
+                units.remove(del_unit)
+
+        # Set "used" flag
+        hero.is_ability_used = True
+
+        # Choosing a unit
+        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}"\n.'
+                                 .format(hero.name, hero.units[0], hero.units[1]))
+        hero.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
+
+        unit = hero.ac_game._get_item(units)
+        hero.ac_game.party.insert(0, unit)
+
+        return unit
+
+    @staticmethod
+    def unit_mix_passive(hero, *units_type):
+        """Passive, which allows you to use a unit of one type as another."""
+        for unit_type in units_type:
+            hero.ac_game.units_dict[unit_type] = hero.units
+
 class Hero:
     """ Abstract hero class for adventure chest game.
         Common methods and attributes are defined here."""
 
     def __init__(self, ac_game):
-        self.name: str = 'unknown hero'
-        self.ability_name: str = 'unknown ability'
+        #self.name: str = 'unknown hero'
+        #self.ability_name: str = 'unknown ability'
         self.exp: int = 0
         self.is_ability_used: bool = False
         self.upgraded: bool = False
         self.ac_game = ac_game
         self.passive()
+        self._introduce()
 
     def passive(self):
         """Passive ability"""
         pass
 
-    def ability(self, stage=None):
+    def ability(self, usage=None):
         """Active ability"""
         pass
 
@@ -38,34 +71,14 @@ class Hero:
         self.exp += n
         self.__upgrade_check()
 
+    def _introduce(self):
+        """Introduces a hero"""
+        pass
+
     def __str__(self):
         return ((f"Ваш герой - \"{self.name}\". Опыт - {self.exp} ед.\nСпособность \"{self.ability_name}\" ") + 
                 ("использована." if self.is_ability_used else "не использована."))
 
-
-class Ability:
-    """Class for heroes abilities"""
-
-    @staticmethod
-    def unit_ability(hero, del_units:tuple) -> str:
-        """Ability that returns unit"""
-        units = list(hero.units)
-        for del_unit in del_units:
-            if del_unit in units:
-                units.remove(del_unit)
-
-        # Set "used" flag
-        hero.is_ability_used = True
-
-        # Choosing a unit
-        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}"\n.'
-                                 .format(hero.name, hero.units[0], hero.units[1]))
-        hero.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
-
-        unit = hero.ac_game._get_item(units)
-        hero.ac_game.party.insert(0, unit)
-
-        return unit
 
 
 class Spellcaster(Hero):
@@ -77,24 +90,26 @@ class Spellcaster(Hero):
 
     def __init__(self, ac_game):
         self.units = ('Воин', 'Маг')
-        super().__init__(ac_game)
         self.name = "Заклинатель меча"
         self.ability_name = "Мистический клинок"
+        super().__init__(ac_game)
 
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
-        self.ac_game.units_dict['warrior'] = self.units
-        self.ac_game.units_dict['mage'] = self.units
+        Ability.unit_mix_passive(self, 'warrior', 'mage')
 
     def ability(self, del_units=None):
-        """Spellcaster may be used as warrior or mage"""
-        return Ability.unit_ability(self, del_units)
+        """Spellcaster may be used as warrior or mage
+        Upgraded ability allows reset all dungeon dice"""
+        
+        return True if self.upgraded else Ability.unit_ability(self, del_units)
 
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
            If game asks a unit - return True."""
 
+        
         own_units = list(self.units)
 
         try:
@@ -107,6 +122,12 @@ class Spellcaster(Hero):
         return (True if usage == 'unit' and not self.is_ability_used
                 and own_units else False)
 
+    def _introduce(self):
+        """Introduces your hero: describes passive and active abilities"""
+        self.ac_game.print_delay('Ваш герой - "{}".'.format(self.name))
+        self.ac_game.print_delay("Пассивный навык: воинов можно использовать как магов, а магов - как воинов.")
+        self.ac_game.print_delay('Активная способность - "{}": "{}" может быть использован как воин или маг.'
+                                 .format(self.ability_name, self.name))
 
 
 

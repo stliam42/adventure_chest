@@ -304,7 +304,7 @@ class AdventureChest():
         self.print_delay("Выберите сопартийца: ")
         unit = self._get_unit("Свиток")
         self.print_delay("Выберите монстра: ")
-        monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
+        monster = self._get_item(self.dungeon, "Сундук", "Зелье")
 
         #Checks and kills
         self._check_and_kill(unit, monster)
