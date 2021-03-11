@@ -31,7 +31,7 @@ class Ability:
             hero.ac_game.units_dict[unit_type] = hero.units
 
     @staticmethod
-    def unit_ability_check(hero, usage, *args, **params):
+    def unit_ability_check(hero, usage, args, params):
         """Checks if the hero can be used as a unit or not"""
         if usage != 'unit':
             return False
@@ -39,6 +39,7 @@ class Ability:
         print(params)
         own_units = list(hero.units)
 
+        # Try to delete forbidden units
         try:
             for del_unit in params['del_units']:
                 print(own_units)
@@ -80,7 +81,7 @@ class Hero:
 
     def upgrade(self):
         """Upgrade your abilities when yo have >= 5 exp and change name of hero"""
-        print("Ваш герой {} становится мастером!".format(self.name))
+        print('Ваш герой "{}" становится мастером!'.format(self.name))
         self.upgraded = True
 
     def ability_check(self, **kwargs) -> bool:
@@ -115,15 +116,22 @@ class Spellcaster(Hero):
         self.ability_name = "Мистический клинок"
         super().__init__(ac_game)
 
+
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
         Ability.unit_mix_passive(self, 'warrior', 'mage')
 
+
     def ability(self, del_units=None):
         """Spellcaster may be used as warrior or mage
         Upgraded ability allows reset all dungeon dice"""
-        
-        return True if self.upgraded else Ability.unit_ability(self, del_units) # FIXME
+        return self.__upgraded_ability() if self.upgraded else Ability.unit_ability(self, del_units) # FIXME
+
+
+    def __upgraded_ability(self):
+        """Resets all dungeon dice"""
+        self.ac_game.dungeon.clear()
+        self.ac_game.dragon.clear()
 
 
     def ability_check(self, usage=None, *args, **params):
@@ -132,9 +140,24 @@ class Spellcaster(Hero):
         if self.is_ability_used:
             return False
         return (self.__upgraded_ability_check(usage, args, params) if self.upgraded 
-                else Ability.unit_ability_check(self, usage, *args, **params))      
+                else Ability.unit_ability_check(self, usage, args, params))      
         
 
+    def __upgraded_ability_check(self, usage, args, params):
+        """Upgraded ability resets dungeon deice.
+           Checks availability of dungeon dice."""
+        if usage != 'ability':
+            return False
+        return True if any([self.ac_game.dungeon, self.ac_game.dragon_lair]) else False
+            
+
+    def upgrade(self):
+        super().upgrade()
+        self.name = "Боевой маг"
+        self.ability_name = "Мистическая ярость"
+        
+        self.ac_game.print_delay('Новая активная способность - "{}": сбросьте все кубики подземелья.'
+                                 .format(self.ability_name))
 
     def _introduce(self):
         """Introduces your hero: describes passive and active abilities"""

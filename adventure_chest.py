@@ -220,30 +220,30 @@ class AdventureChest():
 
         # Create a request containing all your possibilities
         # Fight
-        request.append(f'Сражаться - {action_number}')
+        request.append('Сражаться - {}'.format(action_number))
         FIGHT = action_number
         action_number += 1
                 
         # Scroll
         if "Свиток" in self.party:
-            request.append(f'Использовать свиток - {action_number}')
+            request.append('Использовать свиток - {}'.format(action_number))
             SCROLL = action_number
             action_number += 1
 
         # Hero ability
-        if self.hero.ability_check():
-            request.append(f'Использовать способность героя - {action_number}')
+        if self.hero.ability_check(usage='ability'):
+            request.append('Использовать способность героя - {}'.format(action_number))
             ABILITY = action_number
             action_number += 1
 
         # Treasure
         if self.treasures.is_noncombat():
-            request.append(f'Использовать сокровище - {action_number}')
+            request.append('Использовать сокровище - {}'.format(action_number))
             TREASURE = action_number
             action_number += 1
 
         # Reatreat
-        request.append(f'Отступить - {action_number}')
+        request.append('Отступить - {}'.format(action_number))
         RETREAT = action_number
 
         print(*request, sep = ", ", end = '.\n')
