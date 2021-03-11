@@ -30,6 +30,9 @@
     <Compile Include="exceptions.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="hero.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="main.py" />
     <Compile Include="settings.py">
       <SubType>Code</SubType>

@@ -31,7 +31,6 @@ class Treasures():
             return result
         raise StopIteration
 
-
     def __repr__(self):
         return self._treasures
     
@@ -103,27 +102,31 @@ class Treasures():
 
         print(f"Вы использовали сокровище '{active_treasure}'.\n")
         self.ac_game.delay()
+        # Scroll
         if active_treasure == "Свиток":
             self.ac_game.party.insert(0, active_treasure)
             self.ac_game._scroll()
-
+        # Ring of invisibility
         elif active_treasure == "Кольцо невидимости":
             print("Все кубики из логова дракона были сброшены.\n")
             self.ac_game.delay()
             self.ac_game.dragon_lair.clear()
             self.ac_game.stats.dragon_awake = False
-
+        # Potion
         elif active_treasure == "Эликсир":
-            pass
-
+            print('Кого хотите вернуть?')
+            self.ac_game.delay()
+            self.ac_game.party.append(self.ac_game._get_item(self.ac_game.white_die.sides))
+        # Dragon bait
         elif active_treasure == "Приманка для дракона":
             print("Все кубики подземелья были превращены в драконьи морды.\n")
             self.ac_game.delay()
             for i in range(len(self.ac_game.dungeon)):
                 self.ac_game.dungeon[i] = "Дракон"
-
+        # City portal
         elif active_treasure == "Городской портал": #FIXME
             raise Leave
+
 
     def count_exp(self) -> int:
         """Count treasures experience"""
@@ -133,6 +136,7 @@ class Treasures():
                 exp += 1
         exp += self._treasures.count("Драконьи чешуйки")//2 * 2
         return exp
+
 
     def reset(self):
         """Reset treasures lists"""
@@ -150,4 +154,4 @@ class Treasures():
             )
 
         self._treasures = (["Городской портал"] * 3 + ["Приманка для дракона"] * 4 + ["Кольцо невидимости"] * 4 + ["Воровские инструменты"] * 3 +
-            ["Свиток"] * 3) # [] 
+            ["Свиток"] * 3 + ['Эликсир']) # [] 

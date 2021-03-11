@@ -6,6 +6,7 @@ from statistics import Stats
 from settings import Settings
 from treasures import Treasures
 from exceptions import Defeat, Leave
+from hero import Spellcaster
 
 
 class AdventureChest():
@@ -32,21 +33,32 @@ class AdventureChest():
         self._reset()
         self.cemetery = []
 
+        # Units dictionary for heroes abilities
+        self.units_dict = {"warrior" : ("Воин"), 
+                           "cleric" : ("Клирик"), 
+                           "mage" : ("Маг"), 
+                           "thief": ("Вор"), 
+                           "guardian" : ("Страж"),
+                           "scroll" : ("Свиток"),
+                           }
+
+        self.hero = Spellcaster(self)
+
+        # Print the settings of current dungeon
         self._print_dungeon_settings()
 
+
     def _reset(self):
-        """Reset lists and part of stats"""
+        """Reset dungeon"""
         self.party = self.white_die.roll(self.settings.white_dice)
         self.dungeon = []
         self.dragon_lair = []
         self.stats.dungeon_level = 1
-        #self.treasures.clear()
+        self.treasures.clear()
 
 
     def _print_dungeon_settings(self):
         """Display dungeon settings"""
-        print("Ваш герой - ???")
-        self.delay()
         print(f"Количество походов в подземелье - {self.settings.max_dungeon_trip}.")
         self.delay()
         print(f"Максимальный уровень подземелья - {self.settings.max_dungeon_level}.")
@@ -143,11 +155,14 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
 
 
     def _print_party_info(self):
         """Print game info"""
+        # Hero info
+        print(self.hero)
+        self.delay()
         # Party
         print(f'Кубики партии - {self.party}')
         self.delay()
@@ -186,6 +201,7 @@ class AdventureChest():
             print(f'Кубики подземелья, выбранные для переброса - {black_reroll_list}')
             self.delay()
             print('')
+            self.delay()
 
             black_and_white_list = self.party + self.dungeon
             if not black_and_white_list:
@@ -236,7 +252,7 @@ class AdventureChest():
             action_number += 1
 
         # Hero ability
-        if not self.stats.ability_used:
+        if self.hero.ability_check():
             request.append(f'Использовать способность героя - {action_number}')
             ABILITY = action_number
             action_number += 1
@@ -251,26 +267,25 @@ class AdventureChest():
         request.append(f'Отступить - {action_number}')
         RETREAT = action_number
 
-
         print(*request, sep = ", ", end = '.\n')
         while True:
             try:
                 action = int(input("Ваш выбор: "))
                 print('')
+                if action > action_number: 
+                    raise ValueError
             except ValueError:
                 print("Некорректный ввод")
             else:
-                if action > action_number: raise ValueError
-
                 # Actions
                 if action == FIGHT:
                     fight()
                 elif action == SCROLL:
                     self._scroll()
                 elif action == ABILITY:
-                    pass                                    #CREATE ME
+                    self.hero.ability()
                 elif action == TREASURE:
-                    self.treasures.use_noncombat()  #FIXME
+                    self.treasures.use_noncombat()
                 elif action == RETREAT:
                     raise Defeat
                 break
@@ -335,6 +350,7 @@ class AdventureChest():
         print("Выбери сопартийцов, которые будут сражаться с драконом:")
         self.delay()
         for i in range(self.settings.dragon_slayers_number):
+            print(f'Кубики подземелья - {self.party}')
             print(f'Драконоборцы - {dragon_slayers}')
             self.delay()
             dragon_slayer = self._get_unit("Свиток", *dragon_slayers)
@@ -416,7 +432,7 @@ class AdventureChest():
         unit = self._get_unit("Свиток")
 
         # Guardians and thieves open all chests
-        if unit == "Вор" or unit == "Страж":
+        if unit in self.units_dict['theif'] or unit in self.units_dict['guardian']:
             while "Сундук" in self.dungeon:
                 self.treasures.get_treasure()
 
@@ -425,6 +441,7 @@ class AdventureChest():
             self.treasures.get_treasure()
 
         self._kill_the_unit(unit)
+
 
     def _regrouping(self):
         """Regrouping phase"""
@@ -465,8 +482,11 @@ class AdventureChest():
         if exp:
             print(f'Получено {self.stats.dungeon_level} ед. опыта за уровень подземелья.')
             self.delay()
-            print(f'Получено {self.treasures.count_exp()} ед. опыта за сокровища.')
-            self.delay()
+
+            if self.treasures:
+                print(f'Получено {self.treasures.count_exp()} ед. опыта за сокровища.')
+                self.delay()
+
             self.stats.trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
         else:
             self.stats.trip_exp = 0
@@ -476,11 +496,12 @@ class AdventureChest():
         self._reset()
 
 
-    def _defeat(self):  #FIX ME
-        """If you lose your trip - you have no exp"""
+    def _defeat(self):
+        """Ends your trip - you have no exp"""
         print("Вы вынуждены бежать из подземелья: вы не получаете опыта за этот поход.")
         self.delay()
         self._leave_the_dungeon(exp=False)
+
 
     def _check_and_kill(self, unit, monster):
         """ Checks a unit and a monster interaction
@@ -488,10 +509,10 @@ class AdventureChest():
         """
         assert unit in self.white_die.sides, "Пришло что-то не то"
 
-        if (unit == "Воин" and monster == "Гоблин" or
-                unit == "Клирик" and monster == "Скелет" or
-                unit == "Маг" and monster == "Слизень" or
-                unit == "Страж"):
+        if (unit in self.units_dict['warrior'] and monster == "Гоблин" or
+                unit in self.units_dict['cleric'] and monster == "Скелет" or
+                unit in self.units_dict['mage'] and monster == "Слизень" or
+                unit in self.units_dict['guardian']):
             self._kill_all(monster)
         else:
             self._kill_one(monster)
@@ -524,25 +545,47 @@ class AdventureChest():
                 unique_units.remove(unit)
 
         # Get index
-        index = self._get_index_from_items_list(unique_units, treasure=self.treasures.is_combat(del_units))
-        return (self.treasures.use_combat(del_units) if index == len(unique_units)
-                else unique_units[index])
+        request = self._get_index_from_items_list(unique_units, 
+                                                  treasure=self.treasures.is_combat(del_units),
+                                                  hero=self.hero.ability_check(usage='unit', del_units=del_units))
+        if isinstance(request, int):
+            return unique_units[request]
+        elif request == 'treasure':
+            return self.treasures.use_combat(del_units)
+        elif request == 'hero':
+            return self.hero.ability(del_units)
+
 
 
     def _get_index_from_items_list(self, items_list: list, 
-                                           back:bool=False, treasure:bool=False) -> int:
+                                           back:bool=False, 
+                                           treasure:bool=False, 
+                                           hero:bool=False) -> int:
+
         """Creating a string of numbered items in a list
             if 'back' - add extra index to come back"""
         numbered_items_list = []
+        aux_index = len(items_list)
+        BACK = TREASURE = HERO = 0
 
         for index, item in enumerate(items_list, start=1):
             numbered_items_list.append(f'{item} - {index}')
 
+        # Back option
         if back:
-            numbered_items_list.append(f'Далее - {len(items_list) + 1}')
-
+            aux_index += 1
+            BACK = aux_index
+            numbered_items_list.append(f'Далее - {aux_index}')
+        # Possibility to use treasure while choosing unit
         if treasure:
-            numbered_items_list.append(f'Использовать сокровище - {len(items_list) + 1}')
+            aux_index += 1
+            TREASURE = aux_index
+            numbered_items_list.append(f'Использовать сокровище - {aux_index}')
+        # Possibility to use hero ability while choosing unit
+        if hero:
+            aux_index += 1
+            HERO = aux_index
+            numbered_items_list.append(f'Использовать способность героя - {aux_index}')
 
         print(*numbered_items_list, sep=', ', end='.\n')
 
@@ -551,13 +594,21 @@ class AdventureChest():
 
             try:
                 index = int(input())
-                if index > len(numbered_items_list):
+                if index > aux_index or index <= 0:
                     raise ValueError
             except ValueError:
                 print("Некорректный ввод")
             else:
                 print('')
-                return index - 1
+                if index <= len(items_list):
+                    return index - 1
+                elif index == BACK:
+                    return 'back'
+                elif index == TREASURE:
+                    return 'treasure'
+                elif index == HERO:
+                    return 'hero'
+                
 
 
     def _kill_all(self, monster):
