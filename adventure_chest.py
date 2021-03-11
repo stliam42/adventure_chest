@@ -11,7 +11,6 @@ from hero import Spellcaster
 
 class AdventureChest():
     """Adventure Chest game class"""
-    
 
     def __init__(self):
         """Inintialization parametrs"""

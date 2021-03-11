@@ -48,25 +48,25 @@ class Spellcaster(Hero):
         super().__init__(ac_game)
         self.name = "Заклинатель меча"
         self.ability_name = "Мистический клинок"
+        self.units = ('Воин', 'Маг')
 
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
-        self.ac_game.units_dict['warrior'] = ('Воин','Маг')
-        self.ac_game.units_dict['mage'] = ('Воин','Маг')
+        self.ac_game.units_dict['warrior'] = self.units
+        self.ac_game.units_dict['mage'] = self.units
 
     def ability(self, del_units):
         """Spellcaster may be used as warrior or mage"""
-        units = ['Воин', 'Маг']
         print("It's working")
 
 
-    def ability_check(self, usage=None, **kwargs):
+    def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
            If game asks a unit - return True."""
 
-        own_units = ['Воин', 'Маг']
+        own_units = list(self.units)
 
-        for del_unit in kwargs['del_units']:
+        for del_unit in params['del_units']:
             if del_unit in own_units:
                 own_units.remove(del_unit)
 
