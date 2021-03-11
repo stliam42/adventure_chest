@@ -48,10 +48,9 @@ class Treasures():
         """Gets i treasures"""
         for _ in range(n):
             self._treasures.append(self._treasures_pull.pop(randint(0, len(self._treasures_pull) - 1)))
-            print(f"Получено сокровище - '{self._treasures[-1]}'")
+            self.ac_game.print_delay("Получено сокровище - '{}'".format(self._treasures[-1]))
             if "Сундук" in self.ac_game.dungeon:
                 self.ac_game.dungeon.remove('Сундук')
-            self.ac_game.delay()  
         
 
     def is_combat(self, del_list):
@@ -94,33 +93,29 @@ class Treasures():
         Requests for treasure that you want to use and use it"""
 
         noncombat_treasures = set(self._treasures) & self._noncombat_treasures
-        print("Какое сокровище хотите использовать?")
-        self.ac_game.delay()
+        self.ac_game.print_delay("Какое сокровище хотите использовать?")
         active_treasure = self.ac_game._get_item(noncombat_treasures)
 
         self._treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
 
-        print(f"Вы использовали сокровище '{active_treasure}'.\n")
-        self.ac_game.delay()
+        self.ac_game.print_delay("Вы использовали сокровище '{}'.\n".format(active_treasure))
+
         # Scroll
         if active_treasure == "Свиток":
             self.ac_game.party.insert(0, active_treasure)
             self.ac_game._scroll()
         # Ring of invisibility
         elif active_treasure == "Кольцо невидимости":
-            print("Все кубики из логова дракона были сброшены.\n")
-            self.ac_game.delay()
+            self.ac_game.print_delay("Все кубики из логова дракона были сброшены.\n")
             self.ac_game.dragon_lair.clear()
             self.ac_game.stats.dragon_awake = False
         # Potion
         elif active_treasure == "Эликсир":
-            print('Кого хотите вернуть?')
-            self.ac_game.delay()
+            self.ac_game.print_delay('Кого хотите вернуть?')
             self.ac_game.party.append(self.ac_game._get_item(self.ac_game.white_die.sides))
         # Dragon bait
         elif active_treasure == "Приманка для дракона":
-            print("Все кубики подземелья были превращены в драконьи морды.\n")
-            self.ac_game.delay()
+            self.ac_game.print_delay("Все кубики подземелья были превращены в драконьи морды.\n")
             for i in range(len(self.ac_game.dungeon)):
                 self.ac_game.dungeon[i] = "Дракон"
         # City portal

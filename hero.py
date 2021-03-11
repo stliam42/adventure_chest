@@ -3,10 +3,11 @@ class Hero:
         Common methods and attributes are defined here."""
 
     def __init__(self, ac_game):
-        self.name = 'unknown hero'
-        self.ability_name = 'unknown ability'
-        self.is_ability_used = False
-        self.upgraded = False
+        self.name: str = 'unknown hero'
+        self.ability_name: str = 'unknown ability'
+        self.exp: int = 0
+        self.is_ability_used: bool = False
+        self.upgraded: bool = False
         self.ac_game = ac_game
         self.passive()
 
@@ -18,23 +19,29 @@ class Hero:
         """Active ability"""
         pass
 
-    def upgrade_check(self):
+    def __upgrade_check(self):
         """Checks experience and upgrade your abilities"""
-        if self.ac_game.stats.exp >= 5:
+        if self.exp >= 5:
             self.upgrade()
 
     def upgrade(self):
         """Upgrade your abilities when yo have >= 5 exp and change name of hero"""
+        print("Ваш герой {} становится мастером!".format(self.name))
         self.upgraded = True
-        pass
 
     def ability_check(self, **kwargs) -> bool:
         """Check possibility to use active ability"""
         return False
 
+    def get_exp(self, n:int=1):
+        """Get exp and check upgrade"""
+        self.exp += n
+        self.__upgrade_check()
+
     def __str__(self):
-        return ((f"Ваш герой - \"{self.name}\".\nСпособность \"{self.ability_name}\" ") + 
+        return ((f"Ваш герой - \"{self.name}\". Опыт - {self.exp} ед.\nСпособность \"{self.ability_name}\" ") + 
                 ("использована." if self.is_ability_used else "не использована."))
+
 
 class Ability:
     """Class for heroes abilities"""
@@ -47,12 +54,19 @@ class Ability:
             if del_unit in units:
                 units.remove(del_unit)
 
-        print('{} может быть использован как {} или {}'.format(hero.name, hero.units[0], hero.units[1]))
-        hero.ac_game.delay()
-        print("Каким сопартийцем хотите воспользоваться?")
-        hero.ac_game.delay()
+        # Set "used" flag
+        hero.is_ability_used = True
+
+        # Choosing a unit
+        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}"\n.'
+                                 .format(hero.name, hero.units[0], hero.units[1]))
+        hero.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
+
         unit = hero.ac_game._get_item(units)
-        print(unit)
+        hero.ac_game.party.insert(0, unit)
+
+        return unit
+
 
 class Spellcaster(Hero):
     """
@@ -72,9 +86,10 @@ class Spellcaster(Hero):
         self.ac_game.units_dict['warrior'] = self.units
         self.ac_game.units_dict['mage'] = self.units
 
-    def ability(self, del_units):
+    def ability(self, del_units=None):
         """Spellcaster may be used as warrior or mage"""
-        Ability.unit_ability(self, del_units)
+        return Ability.unit_ability(self, del_units)
+
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
@@ -82,9 +97,12 @@ class Spellcaster(Hero):
 
         own_units = list(self.units)
 
-        for del_unit in params['del_units']:
-            if del_unit in own_units:
-                own_units.remove(del_unit)
+        try:
+            for del_unit in params['del_units']:
+                if del_unit in own_units:
+                    own_units.remove(del_unit)
+        except:
+            pass
 
         return (True if usage == 'unit' and not self.is_ability_used
                 and own_units else False)
