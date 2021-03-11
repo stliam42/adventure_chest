@@ -30,6 +30,27 @@ class Ability:
         for unit_type in units_type:
             hero.ac_game.units_dict[unit_type] = hero.units
 
+    @staticmethod
+    def unit_ability_check(hero, usage, *args, **params):
+        """Checks if the hero can be used as a unit or not"""
+        if usage != 'unit':
+            return False
+        print(args)
+        print(params)
+        own_units = list(hero.units)
+
+        try:
+            for del_unit in params['del_units']:
+                print(own_units)
+                if del_unit in own_units:
+                    own_units.remove(del_unit)
+        except:
+            pass
+
+        return True if own_units else False
+
+        
+
 class Hero:
     """ Abstract hero class for adventure chest game.
         Common methods and attributes are defined here."""
@@ -102,25 +123,18 @@ class Spellcaster(Hero):
         """Spellcaster may be used as warrior or mage
         Upgraded ability allows reset all dungeon dice"""
         
-        return True if self.upgraded else Ability.unit_ability(self, del_units)
+        return True if self.upgraded else Ability.unit_ability(self, del_units) # FIXME
 
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
            If game asks a unit - return True."""
-
+        if self.is_ability_used:
+            return False
+        return (self.__upgraded_ability_check(usage, args, params) if self.upgraded 
+                else Ability.unit_ability_check(self, usage, *args, **params))      
         
-        own_units = list(self.units)
 
-        try:
-            for del_unit in params['del_units']:
-                if del_unit in own_units:
-                    own_units.remove(del_unit)
-        except:
-            pass
-
-        return (True if usage == 'unit' and not self.is_ability_used
-                and own_units else False)
 
     def _introduce(self):
         """Introduces your hero: describes passive and active abilities"""
