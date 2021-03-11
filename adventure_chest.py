@@ -28,10 +28,6 @@ class AdventureChest():
         # Treasures
         self.treasures = Treasures(self)
 
-        # Player's party, monters, cemetery and dragon lists
-        self._reset()
-        self.cemetery = []
-
         # Units dictionary for heroes abilities
         self.units_dict = {"warrior" : ("Воин"), 
                            "cleric" : ("Клирик"), 
@@ -41,19 +37,31 @@ class AdventureChest():
                            "scroll" : ("Свиток"),
                            }
 
+        # Hero
         self.hero = Spellcaster(self)
+
+        # Player's party, monters, cemetery and dragon lists
+        self._reset_dungeon()
+        self.cemetery = []
 
         # Print the settings of current dungeon
         self._print_dungeon_settings()
 
 
-    def _reset(self):
+    def _reset_dungeon(self):
         """Reset dungeon"""
         self.party = self.white_die.roll(self.settings.white_dice)
         self.dungeon = []
         self.dragon_lair = []
         self.stats.dungeon_level = 1
         self.treasures.clear()
+        self.hero.is_ability_used = False
+
+
+    def reset_game(self):
+        """Resets game statistics and other parametrs"""
+        self.stats.reset()
+        self.hero.upgraded = False
 
 
     def _print_dungeon_settings(self):
@@ -64,7 +72,7 @@ class AdventureChest():
         self.print_delay(f"Количество кубиков подземелья - {self.settings.white_dice}.")
 
 
-    def run(self):
+    def run_cycle(self):
         """Run the game"""
         while True:
             if self.stats.dungeon_trip > self.settings.max_dungeon_trip:
@@ -76,29 +84,11 @@ class AdventureChest():
                     self._reward()
                 self._regrouping()
             except Defeat:
-                self._defeat()
+                self._leave_the_dungeon(exp=False)
             except Leave:
                 self.print_delay('Вы восстанавливаете силы и готовитесь к следующему походу:')
                 self._leave_the_dungeon()
     
-
-    def _end_of_game(self):
-        """End of game"""
-        self.print_delay('-' * 100)
-        self.print_delay("Игра закончена.\n")
-        self.print_delay("Ваш опыт - {}.\n".format(self.hero.exp))
-        self.print_delay("Начать игру заново? (да/нет)")
-
-        while True:
-            answer = input("Ваш ответ: ").lower()
-            if answer == "да":
-                self.stats.reset()
-                return
-            elif answer == 'нет':
-                sys.exit()
-            else:
-                self.print_delay('Некорректный ввод')
-
 
     def _new_dungeon_level(self):
         """Creating new dungeon level"""
@@ -111,31 +101,6 @@ class AdventureChest():
         self._print_dungeon_info()
 
 
-    def _dragon_lair(self):
-        """Move dragons to dragon's lair"""
-
-        # Choose the right form of "die"
-        if self.dungeon.count("Дракон") == 1:
-            dice_form = 'кубик'
-        elif self.dungeon.count("Дракон") < 5:
-            dice_form = 'кубика'
-        elif self.dungeon.count("Дракон") >= 5:
-            dice_form = 'кубиков'
-
-        print(f'{self.dungeon.count("Дракон")} {dice_form} "Дракон" перемещаются в логово дракона.\n')
-        self.print_delay()
-
-        # Move dragons to lair
-        while "Дракон" in self.dungeon:
-            self.dragon_lair.append(self.dungeon.pop(self.dungeon.index('Дракон')))
-
-        self._print_party_info()
-
-        if len(self.dragon_lair) >= 3 and not self.stats.dragon_awake:
-            self.print_delay('Дракон пробуждается!\n')
-            self.stats.dragon_awake = True
-
-
     def _create_dungeon(self):
         """Creating new monsters list"""
         # Calculating available dice
@@ -145,7 +110,25 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # self.black_die.roll(monster_num) #   ["Сундук", "Сундук", "Сундук"] #  ["Зелье", "Зелье", "Зелье"] # 
+        self.dungeon = self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+
+
+    def _end_of_game(self):
+        """End of game"""
+        self.print_delay('-' * 100)
+        self.print_delay("Игра закончена.\n")
+        self.print_delay("Ваш опыт - {}.\n".format(self.hero.exp))
+        self.print_delay("Начать игру заново? (да/нет)")
+
+        while True:
+            answer = input("Ваш ответ: ").lower()
+            if answer == "да":
+                self.reset_game()
+                return
+            elif answer == 'нет':
+                sys.exit()
+            else:
+                self.print_delay('Некорректный ввод')
 
 
     def _print_party_info(self):
@@ -170,45 +153,29 @@ class AdventureChest():
                          .format(self.stats.dungeon_trip, self.stats.dungeon_level))
 
 
-    def _scroll(self):
-        """Using a scroll"""
-        self.party.remove("Свиток")
-        white_reroll_list = []
-        black_reroll_list = []
+    def _dragon_lair(self):
+        """Move dragons to dragon's lair"""
 
-        while True:
-            self.print_delay('Кубики партии - {}'.format(self.party))
-            self.print_delay("Кубики партии, выбранные для переброса - {}".format(white_reroll_list))
-            self.print_delay('Кубики подземелья - {}'.format(self.dungeon))
-            self.print_delay('Кубики подземелья, выбранные для переброса - {}'.format(black_reroll_list))
-            self.print_delay('')
+        # Choose the right form of "die"
+        if self.dungeon.count("Дракон") == 1:
+            dice_form = 'кубик'
+        elif self.dungeon.count("Дракон") < 5:
+            dice_form = 'кубика'
+        elif self.dungeon.count("Дракон") >= 5:
+            dice_form = 'кубиков'
 
-            black_and_white_list = self.party + self.dungeon
-            if not black_and_white_list:
-                break
-            self.print_delay("Выберете кубик партии или подземелья, который хотите перебросить:")
-            item = self._get_item(black_and_white_list, back=True)
-            if not item:
-                break
-            elif item in self.party:
-                white_reroll_list.append(self.party.pop(self.party.index(item)))
-            elif item in self.dungeon:
-                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
+        self.print_delay('{} {} "Дракон" перемещаются в логово дракона.\n'
+                         .format(self.dungeon.count("Дракон"), dice_form))
 
-        # Roll new items
-        white_rerolled_list = self.white_die.roll(len(white_reroll_list))
-        black_rerolled_list = self.black_die.roll(len(black_reroll_list))
+        # Move dragons to lair
+        while "Дракон" in self.dungeon:
+            self.dragon_lair.append(self.dungeon.pop(self.dungeon.index('Дракон')))
 
-        # Print transformation
-        self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
-                         .format(white_reroll_list, white_rerolled_list))
-        self.print_delay("Выбранные кубики подземелья {} перебрасываюся в {}."
-                         .format(black_reroll_list, black_rerolled_list))
-        self.print_delay('')
+        self._print_party_info()
 
-        # Extends party and dungeon lists with new rolls of dice
-        self.party.extend(white_rerolled_list)
-        self.dungeon.extend(black_rerolled_list)
+        if len(self.dragon_lair) >= 3 and not self.stats.dragon_awake:
+            self.print_delay('Дракон пробуждается!\n')
+            self.stats.dragon_awake = True
 
 
     def _action(self, fight):
@@ -269,6 +236,7 @@ class AdventureChest():
                     raise Defeat
                 break
 
+
     def _battle(self):
         """Battle cycle"""
         while True:
@@ -304,7 +272,7 @@ class AdventureChest():
         self.print_delay("Выберите сопартийца: ")
         unit = self._get_unit("Свиток")
         self.print_delay("Выберите монстра: ")
-        monster = self._get_item(self.dungeon, "Сундук", "Зелье")
+        monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
         #Checks and kills
         self._check_and_kill(unit, monster)
@@ -360,6 +328,47 @@ class AdventureChest():
         return True if len(potential_dragon_slayers) >= monsters_number else False
 
 
+    def _scroll(self):
+        """Using a scroll"""
+        self.party.remove("Свиток")
+        white_reroll_list = []
+        black_reroll_list = []
+
+        while True:
+            self.print_delay('Кубики партии - {}'.format(self.party))
+            self.print_delay("Кубики партии, выбранные для переброса - {}".format(white_reroll_list))
+            self.print_delay('Кубики подземелья - {}'.format(self.dungeon))
+            self.print_delay('Кубики подземелья, выбранные для переброса - {}'.format(black_reroll_list))
+            self.print_delay('')
+
+            black_and_white_list = self.party + self.dungeon
+            if not black_and_white_list:
+                break
+            self.print_delay("Выберете кубик партии или подземелья, который хотите перебросить:")
+            item = self._get_item(black_and_white_list, back=True)
+            if item == 'back':
+                break
+            elif item in self.party:
+                white_reroll_list.append(self.party.pop(self.party.index(item)))
+            elif item in self.dungeon:
+                black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
+
+        # Roll new items
+        white_rerolled_list = self.white_die.roll(len(white_reroll_list))
+        black_rerolled_list = self.black_die.roll(len(black_reroll_list))
+
+        # Print transformation
+        self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
+                         .format(white_reroll_list, white_rerolled_list))
+        self.print_delay("Выбранные кубики подземелья {} перебрасываюся в {}."
+                         .format(black_reroll_list, black_rerolled_list))
+        self.print_delay('')
+
+        # Extends party and dungeon lists with new rolls of dice
+        self.party.extend(white_rerolled_list)
+        self.dungeon.extend(black_rerolled_list)
+
+
     def _reward(self):
         """Reward cycle"""
         self.print_delay("Получаем награду:\n")
@@ -403,7 +412,7 @@ class AdventureChest():
         unit = self._get_unit("Свиток")
 
         # Guardians and thieves open all chests
-        if unit in self.units_dict['theif'] or unit in self.units_dict['guardian']:
+        if unit in self.units_dict['thief'] or unit in self.units_dict['guardian']:
             while "Сундук" in self.dungeon:
                 self.treasures.get_treasure()
 
@@ -453,37 +462,15 @@ class AdventureChest():
             if self.treasures:
                 self.print_delay('Получено {} ед. опыта за сокровища.'.format(self.treasures.count_exp()))
 
-            self.stats.trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
-        else:
-            self.stats.trip_exp = 0
+            trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
+            self.hero.get_exp(trip_exp)
 
-        self.hero.get_exp(self.stats.trip_exp)
+        else:
+            self.print_delay("Вы вынуждены бежать из подземелья: вы не получаете опыта за этот поход.")
+
+        
         self.stats.dungeon_trip += 1
-        self._reset()
-
-
-    def _defeat(self):
-        """Ends your trip - you have no exp"""
-        self.print_delay("Вы вынуждены бежать из подземелья: вы не получаете опыта за этот поход.")
-        self._leave_the_dungeon(exp=False)
-
-
-    def _check_and_kill(self, unit, monster):
-        """ Checks a unit and a monster interaction
-            and kills monsters
-        """
-        assert (unit in self.white_die.sides and 
-                monster in self.black_die.sides), "Для проверки юнит-монстр пришел не юнит"
-
-        if (unit in self.units_dict['warrior'] and monster == "Гоблин" or
-                unit in self.units_dict['cleric'] and monster == "Скелет" or
-                unit in self.units_dict['mage'] and monster == "Слизень" or
-                unit in self.units_dict['guardian']):
-            self._kill_all(monster)
-        else:
-            self._kill_one(monster)
-
-        self._kill_the_unit(unit)
+        self._reset_dungeon()
 
 
     def _get_item(self, items_list, back=False, *delete_items):
@@ -498,7 +485,7 @@ class AdventureChest():
 
         index = self._get_index_from_items_list(unique_list, back)
 
-        return False if index == len(unique_list) else unique_list[index]
+        return 'back' if index == 'back' else unique_list[index]
 
 
     def _get_unit(self, *del_units):
@@ -520,7 +507,6 @@ class AdventureChest():
             return self.treasures.use_combat(del_units)
         elif request == 'hero':
             return self.hero.ability(del_units)
-
 
 
     def _get_index_from_items_list(self, items_list: list, 
@@ -574,7 +560,24 @@ class AdventureChest():
                     return 'treasure'
                 elif index == HERO:
                     return 'hero'
+              
                 
+    def _check_and_kill(self, unit, monster):
+        """ Checks a unit and a monster interaction
+            and kills monsters
+        """
+        assert (unit in self.white_die.sides and 
+                monster in self.black_die.sides), "Для проверки юнит-монстр пришел не юнит"
+
+        if (unit in self.units_dict['warrior'] and monster == "Гоблин" or
+                unit in self.units_dict['cleric'] and monster == "Скелет" or
+                unit in self.units_dict['mage'] and monster == "Слизень" or
+                unit in self.units_dict['guardian']):
+            self._kill_all(monster)
+        else:
+            self._kill_one(monster)
+
+        self._kill_the_unit(unit)
 
 
     def _kill_all(self, monster):
@@ -588,12 +591,12 @@ class AdventureChest():
         self.dungeon.remove(monster)
 
 
+    def _kill_the_unit(self, unit):
+        """Moves a unit from the party to the cemetery"""
+        self.party.remove(unit)
+
+
     def print_delay(self, message):
         """Print message and sleep"""
         print(message)
         sleep(self.settings.time_delay)
-
-
-    def _kill_the_unit(self, unit):
-        """Moves a unit from the party to the cemetery"""
-        self.party.remove(unit)

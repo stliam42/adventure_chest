@@ -11,11 +11,8 @@ class Ability:
             if del_unit in units:
                 units.remove(del_unit)
 
-        # Set "used" flag
-        hero.is_ability_used = True
-
         # Choosing a unit
-        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}"\n.'
+        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}".\n'
                                  .format(hero.name, hero.units[0], hero.units[1]))
         hero.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
 
@@ -24,25 +21,25 @@ class Ability:
 
         return unit
 
+
     @staticmethod
     def unit_mix_passive(hero, *units_type):
         """Passive, which allows you to use a unit of one type as another."""
         for unit_type in units_type:
             hero.ac_game.units_dict[unit_type] = hero.units
 
+
     @staticmethod
     def unit_ability_check(hero, usage, args, params):
         """Checks if the hero can be used as a unit or not"""
         if usage != 'unit':
             return False
-        print(args)
-        print(params)
+
         own_units = list(hero.units)
 
         # Try to delete forbidden units
         try:
             for del_unit in params['del_units']:
-                print(own_units)
                 if del_unit in own_units:
                     own_units.remove(del_unit)
         except:
@@ -74,9 +71,14 @@ class Hero:
         """Active ability"""
         pass
 
+    def get_exp(self, n:int=1):
+        """Get exp and check upgrade"""
+        self.exp += n
+        self.__upgrade_check()
+
     def __upgrade_check(self):
         """Checks experience and upgrade your abilities"""
-        if self.exp >= 5:
+        if self.exp >= 5 and not self.upgraded:
             self.upgrade()
 
     def upgrade(self):
@@ -87,11 +89,6 @@ class Hero:
     def ability_check(self, **kwargs) -> bool:
         """Check possibility to use active ability"""
         return False
-
-    def get_exp(self, n:int=1):
-        """Get exp and check upgrade"""
-        self.exp += n
-        self.__upgrade_check()
 
     def _introduce(self):
         """Introduces a hero"""
@@ -125,13 +122,16 @@ class Spellcaster(Hero):
     def ability(self, del_units=None):
         """Spellcaster may be used as warrior or mage
         Upgraded ability allows reset all dungeon dice"""
+        self.is_ability_used = True
         return self.__upgraded_ability() if self.upgraded else Ability.unit_ability(self, del_units) # FIXME
 
 
     def __upgraded_ability(self):
         """Resets all dungeon dice"""
+        self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
+                                 .format(self.ability_name))
         self.ac_game.dungeon.clear()
-        self.ac_game.dragon.clear()
+        self.ac_game.dragon_lair.clear()
 
 
     def ability_check(self, usage=None, *args, **params):
@@ -156,7 +156,7 @@ class Spellcaster(Hero):
         self.name = "Боевой маг"
         self.ability_name = "Мистическая ярость"
         
-        self.ac_game.print_delay('Новая активная способность - "{}": сбросьте все кубики подземелья.'
+        self.ac_game.print_delay('Новая активная способность - "{}": сбросьте все кубики подземелья.\n'
                                  .format(self.ability_name))
 
     def _introduce(self):

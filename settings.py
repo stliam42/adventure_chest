@@ -6,5 +6,5 @@ class Settings():
         self.white_dice = 7
         self.black_dice = 7
         self.max_dungeon_level = 10
-        self.max_dungeon_trip = 2
+        self.max_dungeon_trip = 3
         self.dragon_slayers_number = 3 # Number of units who will slay a dragon
