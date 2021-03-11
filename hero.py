@@ -36,7 +36,24 @@ class Hero:
         return ((f"Ваш герой - \"{self.name}\".\nСпособность \"{self.ability_name}\" ") + 
                 ("использована." if self.is_ability_used else "не использована."))
 
-    
+class Ability:
+    """Class for heroes abilities"""
+
+    @staticmethod
+    def unit_ability(hero, del_units:tuple) -> str:
+        """Ability that returns unit"""
+        units = list(hero.units)
+        for del_unit in del_units:
+            if del_unit in units:
+                units.remove(del_unit)
+
+        print('{} может быть использован как {} или {}'.format(hero.name, hero.units[0], hero.units[1]))
+        hero.ac_game.delay()
+        print("Каким сопартийцем хотите воспользоваться?")
+        hero.ac_game.delay()
+        unit = hero.ac_game._get_item(units)
+        print(unit)
+
 class Spellcaster(Hero):
     """
        They say that a battle mage who succumbed to the witchcraft
@@ -45,10 +62,10 @@ class Spellcaster(Hero):
     """
 
     def __init__(self, ac_game):
+        self.units = ('Воин', 'Маг')
         super().__init__(ac_game)
         self.name = "Заклинатель меча"
         self.ability_name = "Мистический клинок"
-        self.units = ('Воин', 'Маг')
 
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
@@ -57,8 +74,7 @@ class Spellcaster(Hero):
 
     def ability(self, del_units):
         """Spellcaster may be used as warrior or mage"""
-        print("It's working")
-
+        Ability.unit_ability(self, del_units)
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
