@@ -325,6 +325,18 @@ class AdventureChest():
         # Intersection 
         potential_dragon_slayers = units | treasures_to_units
 
+        if self.hero.ability_check(usage='unit', del_units=potential_dragon_slayers):
+            if (self.hero.units[0] not in potential_dragon_slayers
+                    and self.hero.units[1] not in potential_dragon_slayers):
+                potential_dragon_slayers.add(self.hero.units[0])
+
+            elif self.hero.units[0] not in potential_dragon_slayers:
+                potential_dragon_slayers.add(self.hero.units[0])
+
+            elif self.hero.units[1] not in potential_dragon_slayers:
+                potential_dragon_slayers.add(self.hero.units[1])
+
+        print(potential_dragon_slayers)
         return True if len(potential_dragon_slayers) >= monsters_number else False
 
 

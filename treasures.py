@@ -20,9 +20,12 @@ class Treasures():
                                        "Жезл силы" : "Маг",
                                        "Воровские инструменты" : "Вор",
                                        "Свиток" : "Свиток"}
+
+
     def __iter__(self):
         self.i = 0
         return self
+
 
     def __next__(self):
         if self.i < len(self._treasures):
@@ -31,14 +34,18 @@ class Treasures():
             return result
         raise StopIteration
 
+
     def __repr__(self):
         return self._treasures
     
+
     def __str__(self):
         return str(self._treasures)
 
+
     def __bool__(self):
         return True if self._treasures else False
+
 
     def clear(self):
         self._treasures.clear()
@@ -148,5 +155,4 @@ class Treasures():
             ["Городской портал"] * 3
             )
 
-        self._treasures = (["Городской портал"] * 3 + ["Приманка для дракона"] * 4 + ["Кольцо невидимости"] * 4 + ["Воровские инструменты"] * 3 +
-            ["Свиток"] * 3 + ['Эликсир']) # [] 
+        self._treasures = [] 

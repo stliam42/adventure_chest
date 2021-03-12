@@ -165,7 +165,3 @@ class Spellcaster(Hero):
         self.ac_game.print_delay("Пассивный навык: воинов можно использовать как магов, а магов - как воинов.")
         self.ac_game.print_delay('Активная способность - "{}": "{}" может быть использован как воин или маг.'
                                  .format(self.ability_name, self.name))
-
-
-
-    
