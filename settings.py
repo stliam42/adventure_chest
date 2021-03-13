@@ -2,7 +2,7 @@ class Settings():
     """Settings for AC game"""
 
     def __init__(self):
-        self.time_delay = 0.1
+        self.time_delay = 0.5
         self.white_dice = 7
         self.black_dice = 7
         self.max_dungeon_level = 10

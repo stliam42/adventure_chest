@@ -2,7 +2,7 @@ from time import sleep
 import sys
 
 from dice import White_die, Black_die
-from statistics import Stats
+from stats import Stats
 from settings import Settings
 from treasures import Treasures
 from exceptions import Defeat, Leave
@@ -269,9 +269,9 @@ class AdventureChest():
             print("Вы не можете сражаться.")
             raise Defeat
 
-        self.print_delay("Выберите сопартийца: ")
+        print("Выберите сопартийца: ")
         unit = self._get_unit("Свиток")
-        self.print_delay("Выберите монстра: ")
+        print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
         #Checks and kills
@@ -336,7 +336,6 @@ class AdventureChest():
             elif self.hero.units[1] not in potential_dragon_slayers:
                 potential_dragon_slayers.add(self.hero.units[1])
 
-        print(potential_dragon_slayers)
         return True if len(potential_dragon_slayers) >= monsters_number else False
 
 
@@ -408,6 +407,7 @@ class AdventureChest():
         while "Зелье" in self.dungeon and len(self.party) < 7:
             resurection_number = min((self.settings.white_dice - len(self.party), 
                                       self.dungeon.count("Зелье")))
+            self.print_delay('Кубики партии - {}'.format(self.party))
             self.print_delay('Вы можете вернуть еще {} сопартийца.\n'.format(resurection_number))
             self.dungeon.remove("Зелье")
             self.print_delay('Кого хотите вернуть?')
@@ -438,6 +438,7 @@ class AdventureChest():
     def _regrouping(self):
         """Regrouping phase"""
         self.print_delay("Вы зачистили подземелье!\n")
+        self._print_party_info()
 
         if self.stats.dungeon_level == self.settings.max_dungeon_level:
             self.print_delay("Вы достигли максимального уровня подземелья!\n")
@@ -612,3 +613,7 @@ class AdventureChest():
         """Print message and sleep"""
         print(message)
         sleep(self.settings.time_delay)
+
+
+if __name__ == "__main__":
+    main()
