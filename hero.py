@@ -48,7 +48,6 @@ class Ability:
         return True if own_units else False
 
         
-
 class Hero:
     """ Abstract hero class for adventure chest game.
         Common methods and attributes are defined here."""
@@ -58,10 +57,10 @@ class Hero:
         #self.ability_name: str = 'unknown ability'
         self.exp: int = 0
         self.is_ability_used: bool = False
-        self.upgraded: bool = False
+        self.improved: bool = False
         self.ac_game = ac_game
         self.passive()
-        self._introduce()
+        self.__introduce()
 
     def passive(self):
         """Passive ability"""
@@ -72,27 +71,27 @@ class Hero:
         pass
 
     def get_exp(self, n:int=1):
-        """Get exp and check upgrade"""
+        """Get exp and check improve"""
         self.exp += n
-        self.__upgrade_check()
+        self.__improve_check()
 
-    def __upgrade_check(self):
-        """Checks experience and upgrade your abilities"""
-        if self.exp >= 5 and not self.upgraded:
-            self.upgrade()
+    def __improve_check(self):
+        """Checks experience and improve your abilities"""
+        if self.exp >= 5 and not self.improved:
+            self.improve()
 
-    def upgrade(self):
-        """Upgrade your abilities when yo have >= 5 exp and change name of hero"""
+    def improve(self):
+        """improve your abilities when yo have >= 5 exp and change name of hero"""
         print('Ваш герой "{}" становится мастером!'.format(self.name))
-        self.upgraded = True
+        self.improved = True
 
-    def ability_check(self, **kwargs) -> bool:
+    def ability_check(self, *args, **kwargs) -> None:
         """Check possibility to use active ability"""
-        return False
+        return None
 
-    def _introduce(self):
+    def __introduce(self):
         """Introduces a hero"""
-        pass
+        self.ac_game.print_delay('Ваш герой - "{}".'.format(self.name))
 
     def __str__(self):
         return ((f"Ваш герой - \"{self.name}\". Опыт - {self.exp} ед.\nСпособность \"{self.ability_name}\" ") + 
@@ -121,12 +120,12 @@ class Spellcaster(Hero):
 
     def ability(self, del_units=None):
         """Spellcaster may be used as warrior or mage
-        Upgraded ability allows reset all dungeon dice"""
+        improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
-        return self.__upgraded_ability() if self.upgraded else Ability.unit_ability(self, del_units) # FIXME
+        return self.__improved_ability() if self.improved else Ability.unit_ability(self, del_units) # FIXME
 
 
-    def __upgraded_ability(self):
+    def __improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
                                  .format(self.ability_name))
@@ -139,29 +138,29 @@ class Spellcaster(Hero):
            If game asks a unit - return True."""
         if self.is_ability_used:
             return False
-        return (self.__upgraded_ability_check(usage, args, params) if self.upgraded 
+        return (self.__improved_ability_check(usage, args, params) if self.improved 
                 else Ability.unit_ability_check(self, usage, args, params))      
         
 
-    def __upgraded_ability_check(self, usage, args, params):
-        """Upgraded ability resets dungeon deice.
+    def __improved_ability_check(self, usage, args, params):
+        """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
         if usage != 'ability':
             return False
         return True if any([self.ac_game.dungeon, self.ac_game.dragon_lair]) else False
             
 
-    def upgrade(self):
-        super().upgrade()
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve()
         self.name = "Боевой маг"
         self.ability_name = "Мистическая ярость"
         
         self.ac_game.print_delay('Новая активная способность - "{}": сбросьте все кубики подземелья.\n'
                                  .format(self.ability_name))
 
-    def _introduce(self):
+    def __introduce(self):
         """Introduces your hero: describes passive and active abilities"""
-        self.ac_game.print_delay('Ваш герой - "{}".'.format(self.name))
         self.ac_game.print_delay("Пассивный навык: воинов можно использовать как магов, а магов - как воинов.")
         self.ac_game.print_delay('Активная способность - "{}": "{}" может быть использован как воин или маг.'
                                  .format(self.ability_name, self.name))

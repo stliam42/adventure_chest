@@ -2,9 +2,7 @@ from adventure_chest import AdventureChest
 
 
 ac_game = AdventureChest()
-ac_game.run_cycle()
-
-x = input("hello")
+ac_game.game_procces_cycle()
 
 
 

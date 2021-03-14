@@ -20,6 +20,7 @@ class AdventureChest():
 
         # Game settings
         self.settings = Settings()
+        #self.__request_settings()      #FIXME
 
         # Dice
         self.white_die = White_die()
@@ -42,10 +43,25 @@ class AdventureChest():
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
-        self.cemetery = []
 
         # Print the settings of current dungeon
         self._print_dungeon_settings()
+
+    #def __request_settings(self):
+    #    while True:
+    #        try:
+    #            print("1 - Пользовательские настройки, 2 - Использовать стандартные.")
+    #            answer = int(input("Ваш выбор: "))
+    #        except:
+    #            self.print_delay("Некорректный ввод")
+    #        else:
+    #            if answer > 2:
+    #                raise ValueError
+    #            elif answer == 1:
+    #                white_dice = int(input("Введите количество кубиков партии: "))
+    #                self.settings.white_dice = 
+    #            else:
+    #                break
 
 
     def _reset_dungeon(self):
@@ -61,7 +77,7 @@ class AdventureChest():
     def reset_game(self):
         """Resets game statistics and other parametrs"""
         self.stats.reset()
-        self.hero.upgraded = False
+        self.hero.improved = False
 
 
     def _print_dungeon_settings(self):
@@ -72,7 +88,7 @@ class AdventureChest():
         self.print_delay(f"Количество кубиков подземелья - {self.settings.white_dice}.")
 
 
-    def run_cycle(self):
+    def game_procces_cycle(self):
         """Run the game"""
         while True:
             if self.stats.dungeon_trip > self.settings.max_dungeon_trip:
