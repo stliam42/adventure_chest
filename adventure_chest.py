@@ -613,7 +613,3 @@ class AdventureChest():
         """Print message and sleep"""
         print(message)
         sleep(self.settings.time_delay)
-
-
-if __name__ == "__main__":
-    main()
