@@ -135,7 +135,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon = ["Сундук"]*3 + ["Зелье"]*3# self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -381,7 +381,7 @@ class AdventureChest():
             black_and_white_list = self.party + self.dungeon
             if not black_and_white_list:
                 break
-            self.print_delay("Выберете кубик партии или подземелья, "
+            self.print_delay("Выберите кубик партии или подземелья, "
                              "который хотите перебросить:")
             item = self._get_item(black_and_white_list, back=True)
             if item == 'back':
@@ -398,7 +398,7 @@ class AdventureChest():
         # Print transformation
         self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
                          .format(white_reroll_list, white_rerolled_list))
-        self.print_delay("Выбранные кубики подземелья {} перебрасываюся в {}."
+        self.print_delay("Выбранные кубики подземелья {} перебрасыватюся в {}."
                          .format(black_reroll_list, black_rerolled_list))
         self.print_delay('')
 
@@ -410,37 +410,51 @@ class AdventureChest():
     def _reward(self):
         """Reward cycle"""
         self.print_delay("Вы победили всех монстров: "
-                         "время брать награду\n")
+                         "время брать награду.\n")
         while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
+            self.print_delay('Кубики партии - {}'.format(self.party))
             self.print_delay('Кубики подземелья - {}\n'.format(self.dungeon))
             self.print_delay('Ваш выбор: ')
+
             action = self._get_item(self.dungeon, back=True)
+            if action == 'back': break
             del_units = "Свиток" if action == "Сундук" else None
+
+            print(("Выберите сопартийца, который ") + ("откроет сундуки:"
+                  if action == "Сундук" else "выпьет зелья:"))
             unit = self._get_unit(del_units)
             self._kill_unit(unit)
 
             if action == "Сундук":
                 self._chest(unit)
             elif action == "Зелье":
-                self._potion(unit)
-            else:
-                break
+                self._potion()
+
+
+    def _chest(self, unit):
+        """Opens chests after battle and give truasure for every one"""
+
+        # Guardians and thieves open all chests
+        if unit in self.units_dict['thief'] or unit in self.units_dict['guardian']:
+                self.treasures.get_treasure(self.dungeon.count("Сундук"))
+
+        # Another units open one chest
+        else:
+            self.treasures.get_treasure()
+
 
 
     def _potion(self):
         """Drinking potions at the end of dungeon"""
-        # Chooses the units who will drink potions
-        
-        self.print_delay('Выбери сопартийца, который выпьет зелья:')
-        unit = self._get_unit()
-        self._kill_unit(unit)
 
         # Process of drinking and adding new units as long as there are potions and dice 
         while "Зелье" in self.dungeon and len(self.party) < 7:
             resurection_number = min((self.settings.white_dice - len(self.party), 
                                       self.dungeon.count("Зелье")))
             self.print_delay('Кубики партии - {}'.format(self.party))
-            self.print_delay('Вы можете вернуть еще {} сопартийца.\n'
+            self.print_delay((('Вы можете вернуть еще {} ') + 
+                              ('сопартийца' if resurection_number == 1 
+                               else 'сопартиейцев') + '.\n')
                              .format(resurection_number))
             self.dungeon.remove("Зелье")
             self.print_delay('Кого хотите вернуть?')
@@ -451,26 +465,9 @@ class AdventureChest():
             self.dungeon.remove("Зелье")
 
 
-    def _chest(self):
-        """Opens chests after battle and give truasure for every one"""
-        self.print_delay('Выбери сопартийца, который откроет сундуки:')
-        unit = self._get_unit("Свиток")
-
-        # Guardians and thieves open all chests
-        if unit in self.units_dict['thief'] or unit in self.units_dict['guardian']:
-            while "Сундук" in self.dungeon:
-                self.treasures.get_treasure()
-
-        # Another units open one chest
-        else:
-            self.treasures.get_treasure()
-
-        self._kill_unit(unit)
-
-
     def _regrouping(self):
         """Regrouping phase"""
-        self.print_delay("Вы зачистили подземелье!\n")
+        self.print_delay("\nВы зачистили подземелье!\n")
         self._print_party_info()
 
         if self.stats.dungeon_level == self.settings.max_dungeon_level:

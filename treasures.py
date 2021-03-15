@@ -54,10 +54,11 @@ class Treasures():
     def get_treasure(self, n=1):
         """Gets i treasures"""
         for _ in range(n):
-            self._treasures.append(self._treasures_pull.pop(randint(0, len(self._treasures_pull) - 1)))
+            self._treasures.append(self.__treasures_pull.pop(randint(0, len(self.__treasures_pull) - 1)))
             self.ac_game.print_delay("Получено сокровище - '{}'".format(self._treasures[-1]))
             if "Сундук" in self.ac_game.dungeon:
                 self.ac_game.dungeon.remove('Сундук')
+        print('')
         
 
     def is_combat(self, del_list):
@@ -85,7 +86,7 @@ class Treasures():
         active_treasure = self.ac_game._get_item(unique_treasures)
 
         # Returns treasure to the pull and returns member to game
-        self._treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
+        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
         self.ac_game.party.insert(0, self._treasure_to_unit_dict[active_treasure])
         return self._treasure_to_unit_dict[active_treasure]
 
@@ -103,7 +104,7 @@ class Treasures():
         self.ac_game.print_delay("Какое сокровище хотите использовать?")
         active_treasure = self.ac_game._get_item(noncombat_treasures)
 
-        self._treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
+        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
 
         self.ac_game.print_delay("Вы использовали сокровище '{}'.\n".format(active_treasure))
 
@@ -126,7 +127,7 @@ class Treasures():
             for i in range(len(self.ac_game.dungeon)):
                 self.ac_game.dungeon[i] = "Дракон"
         # City portal
-        elif active_treasure == "Городской портал": #FIXME
+        elif active_treasure == "Городской портал":
             raise Leave
 
 
@@ -142,7 +143,7 @@ class Treasures():
 
     def reset(self):
         """Reset treasures lists"""
-        self._treasures_pull = (
+        self.__treasures_pull = (
             ["Разящий меч"] * 3 +
             ["Талисман"] * 3 +
             ["Жезл силы"] * 3 +
