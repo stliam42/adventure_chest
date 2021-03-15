@@ -58,6 +58,7 @@ class Treasures():
             self.ac_game.print_delay("Получено сокровище - '{}'".format(self._treasures[-1]))
             if "Сундук" in self.ac_game.dungeon:
                 self.ac_game.dungeon.remove('Сундук')
+        print('')
         
 
     def is_combat(self, del_list):
