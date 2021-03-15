@@ -80,7 +80,6 @@ class Hero:
         self.is_ability_used: bool = False
         self.improved: bool = False
         self.ac_game = ac_game
-        self.passive()
         self.__introduce()
 
     def passive(self):

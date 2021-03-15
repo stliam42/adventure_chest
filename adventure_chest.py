@@ -47,6 +47,10 @@ class AdventureChest():
         # Print the settings of current dungeon
         self._print_dungeon_settings()
 
+        # Applies hero's passive
+        self.hero.passive()
+
+
     #def __request_settings(self):
     #    while True:
     #        try:
@@ -405,15 +409,20 @@ class AdventureChest():
 
     def _reward(self):
         """Reward cycle"""
-        self.print_delay("Получаем награду:\n")
+        self.print_delay("Вы победили всех монстров: "
+                         "время брать награду\n")
         while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
             self.print_delay('Кубики подземелья - {}\n'.format(self.dungeon))
             self.print_delay('Ваш выбор: ')
             action = self._get_item(self.dungeon, back=True)
+            del_units = "Свиток" if action == "Сундук" else None
+            unit = self._get_unit(del_units)
+            self._kill_unit(unit)
+
             if action == "Сундук":
-                self._chest()
+                self._chest(unit)
             elif action == "Зелье":
-                self._potion()
+                self._potion(unit)
             else:
                 break
 
@@ -424,7 +433,7 @@ class AdventureChest():
         
         self.print_delay('Выбери сопартийца, который выпьет зелья:')
         unit = self._get_unit()
-        self._kill_the_unit(unit)
+        self._kill_unit(unit)
 
         # Process of drinking and adding new units as long as there are potions and dice 
         while "Зелье" in self.dungeon and len(self.party) < 7:
@@ -456,7 +465,7 @@ class AdventureChest():
         else:
             self.treasures.get_treasure()
 
-        self._kill_the_unit(unit)
+        self._kill_unit(unit)
 
 
     def _regrouping(self):
@@ -619,7 +628,7 @@ class AdventureChest():
         else:
             self._kill_one(monster)
 
-        self._kill_the_unit(unit)
+        self._kill_unit(unit)
 
 
     def _kill_all(self, monster):
@@ -633,7 +642,7 @@ class AdventureChest():
         self.dungeon.remove(monster)
 
 
-    def _kill_the_unit(self, unit):
+    def _kill_unit(self, unit):
         """Moves a unit from the party to the cemetery"""
         self.party.remove(unit)
 
