@@ -1,3 +1,23 @@
+from sys import modules
+from inspect import getmembers, isclass
+from random import choice
+
+
+def __create_hero_list():
+    """This function creates list of heroes in this module"""
+    available_heroes = [class_ for name, class_ in 
+                    getmembers(modules[__name__], isclass) 
+                    if issubclass(class_, Hero)]
+    available_heroes.remove(Hero)
+    return available_heroes
+
+
+def get_random_hero(ac_game):
+    """Return random hero"""
+    global __avaible_heroes
+    return choice(__avaible_heroes)(ac_game)
+
+
 class Ability:
     """Class for common hero abilities"""
 
@@ -23,10 +43,11 @@ class Ability:
 
 
     @staticmethod
-    def unit_mix_passive(hero, *units_type):
+    def unit_mix_passive(hero):
         """Passive, which allows you to use a unit of one type as another."""
-        for unit_type in units_type:
-            hero.ac_game.units_dict[unit_type] = hero.units
+        for key, unit in hero.ac_game.units_dict.items():
+            if unit in hero.units:
+                hero.ac_game.units_dict[key] = hero.units
 
 
     @staticmethod
@@ -80,9 +101,9 @@ class Hero:
         if self.exp >= 5 and not self.improved:
             self.improve()
 
-    def improve(self):
-        """improve your abilities when yo have >= 5 exp and change name of hero"""
-        print('Ваш герой "{}" становится мастером!'.format(self.name))
+    def improve(self, new_name:str):
+        """Improve your abilities when yo have >= 5 exp and change name of hero"""
+        print('Ваш герой "{}" становится {}!'.format(self.name, new_name))
         self.improved = True
 
     def ability_check(self, *args, **kwargs) -> None:
@@ -92,11 +113,22 @@ class Hero:
     def __introduce(self):
         """Introduces a hero"""
         self.ac_game.print_delay('Ваш герой - "{}".'.format(self.name))
+        self.ac_game.print_delay(self.passive_info)
+        self.ac_game.print_delay(self.ability_info)
+
+
+    def __reset(self):
+        """Reset a hero"""
+        self.__init__(self.ac_game)
+
+    def __rep__(self):
+        return self.name
 
     def __str__(self):
-        return ((f"Ваш герой - \"{self.name}\". Опыт - {self.exp} ед.\nСпособность \"{self.ability_name}\" ") + 
-                ("использована." if self.is_ability_used else "не использована."))
-
+        return (("Ваш герой - \"{}\". Опыт - {} ед.\nСпособность \"{}\" ")
+                .format(self.name, self.exp, self.ability_name) + 
+                ("использована." if self.is_ability_used 
+                 else "не использована."))
 
 
 class Spellcaster(Hero):
@@ -110,24 +142,31 @@ class Spellcaster(Hero):
         self.units = ('Воин', 'Маг')
         self.name = "Заклинатель меча"
         self.ability_name = "Мистический клинок"
+        self.passive_info = ("Пассивный навык: воинов можно использовать "
+                             "как магов, а магов - как воинов.")
+        self.ability_info = ('Активная способность - "{}": "{}" может быть '
+                             'использован как воин или маг.'
+                             .format(self.ability_name, self.name))
         super().__init__(ac_game)
 
 
     def passive(self):
         """Spellcaster can use warriors as mages and vice versa."""
-        Ability.unit_mix_passive(self, 'warrior', 'mage')
+        Ability.unit_mix_passive(self)
 
 
     def ability(self, del_units=None):
         """Spellcaster may be used as warrior or mage
         improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
-        return self.__improved_ability() if self.improved else Ability.unit_ability(self, del_units) # FIXME
+        return (self.__improved_ability() if self.improved 
+                else Ability.unit_ability(self, del_units))
 
 
     def __improved_ability(self):
         """Resets all dungeon dice"""
-        self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
+        self.ac_game.print_delay('Вы используете способность {} '
+                                 'и сбрасываете все кубики подземелья'
                                  .format(self.ability_name))
         self.ac_game.dungeon.clear()
         self.ac_game.dragon_lair.clear()
@@ -152,15 +191,88 @@ class Spellcaster(Hero):
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
-        super().improve()
+        super().improve('"Боевым магом"')
         self.name = "Боевой маг"
         self.ability_name = "Мистическая ярость"
         
-        self.ac_game.print_delay('Новая активная способность - "{}": сбросьте все кубики подземелья.\n'
+        self.ac_game.print_delay('Новая активная способность - "{}":сбросьте все '
+                                 'кубики подземелья.\n'.format(self.ability_name))
+
+
+class Crusader(Hero):
+    """
+       The holy warrior who fights in the name
+       your god. She regularly pays tithing and
+       a cop of need can count on the divine
+       intervention ... Monsters scatter in fear
+       away from her shining consecrated sword. And how only
+       the light dims, all the chests open, and for each found
+       the potion revives a party member.
+    """
+
+    def __init__(self, ac_game):
+        self.units = ('Воин', 'Клирик')
+        self.name = "Крестоносец"
+        self.ability_name = "Праведный удар"
+        self.passive_info = ("Пассивный навык: воинов можно использовать "
+                             "как клириков, а клириков - как воинов.")
+        self.ability_info = ('Активная способность - "{}": "{}" может быть '
+                             'использован как воин или клирик.'
+                             .format(self.ability_name, self.name))
+        super().__init__(ac_game)
+
+
+    def passive(self):
+        """Crusader can use warriors as clerics and vice versa."""
+        Ability.unit_mix_passive(self)
+
+
+    def ability(self, del_units=None):
+        """Crusader may be used as warrior or cleric
+        improved ability allows kill all monsters,
+        open all chests, drink all potion and 
+        reset dragon lair"""
+        self.is_ability_used = True
+        return self.__improved_ability() if self.improved else Ability.unit_ability(self, del_units)
+
+
+    def ability_check(self, usage=None, *args, **params):
+        """Spellcaster may be used as warrior or mage.
+           If game asks a unit - return True."""
+        if self.is_ability_used:
+            return False
+        return (self.__improved_ability_check(usage, args, params) if self.improved 
+                else Ability.unit_ability_check(self, usage, args, params))      
+
+
+    def __improved_ability(self):
+        """Resets all dungeon dice"""
+        self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
+                                 .format(self.ability_name))
+        self.ac_game.dungeon.clear()
+        self.ac_game.dragon_lair.clear()
+
+
+    def __improved_ability_check(self, usage, args, params):
+        """Improved ability resets dungeon dice.
+           Checks availability of dungeon dice."""
+        if usage != 'ability':
+            return False
+        return True if any([self.ac_game.dungeon, self.ac_game.dragon_lair]) else False
+            
+
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('"Паладином"')
+        self.name = "Паладин"
+        self.ability_name = "Божественное вмешательство"
+        
+        self.ac_game.print_delay('Новая активная способность - "{}": '
+                                 'сбростьте 1 жетон сокровища,'
+                                 'чтобы сбросить всех монстров,'
+                                 'открыть все сундуки, выпить все зелья и ' 
+                                 'сбросить все кубики из логова дракона.\n'
                                  .format(self.ability_name))
 
-    def __introduce(self):
-        """Introduces your hero: describes passive and active abilities"""
-        self.ac_game.print_delay("Пассивный навык: воинов можно использовать как магов, а магов - как воинов.")
-        self.ac_game.print_delay('Активная способность - "{}": "{}" может быть использован как воин или маг.'
-                                 .format(self.ability_name, self.name))
+
+__avaible_heroes = __create_hero_list()
