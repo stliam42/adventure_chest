@@ -36,10 +36,12 @@ class AdventureChest():
                            "thief": ("Вор"), 
                            "guardian" : ("Страж"),
                            "scroll" : ("Свиток"),
+                           "monster" : ("Гоблин", "Скелет", "Слизень")
                            }
 
         # Hero
         self.hero = hero.Crusader(self)
+        self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -103,10 +105,7 @@ class AdventureChest():
                 self._end_of_game()
             try:
                 self._new_dungeon_level()
-                self._battle()
-                if "Сундук" in self.dungeon or "Зелье" in self.dungeon:
-                    self._reward()
-                self._regrouping()
+                self._action()
             except Defeat:
                 self._leave_the_dungeon(exp=False)
             except Leave:
@@ -204,7 +203,7 @@ class AdventureChest():
             self.stats.dragon_awake = True
 
 
-    def _action(self, fight):
+    def _action(self):
         """Return number of action and dictionary (action-number)"""
         # Prepare variables to create an action request.
         request = []
@@ -440,7 +439,6 @@ class AdventureChest():
         # Another units open one chest
         else:
             self.treasures.get_treasure()
-
 
 
     def _potion(self):

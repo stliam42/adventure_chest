@@ -131,7 +131,35 @@ class Hero:
                  else "не использована."))
 
 
-class Spellcaster(Hero):
+class UnitHero(Hero):
+    """Class for heroers who may be used as unit and whose passive
+       allows to use one type of units as another"""
+
+    def __init__(self, ac_game):
+        super().__init__(ac_game)
+
+    def passive(self):
+        """UnitHero can use one_tupe as another_type and vice versa."""
+        Ability.unit_mix_passive(self)
+
+
+    def ability(self, del_units=None):
+        """UnitHero may be used as one_type or another_type
+        improved ability allows reset all dungeon dice"""
+        self.is_ability_used = True
+        return (self.__improved_ability() if self.improved 
+                else Ability.unit_ability(self, del_units))
+
+    def ability_check(self, usage=None, *args, **params):
+        """Spellcaster may be used as warrior or mage.
+           If game asks a unit - return True."""
+        if self.is_ability_used:
+            return False
+        return (self.__improved_ability_check(usage, args, params) if self.improved 
+                else Ability.unit_ability_check(self, usage, args, params)) 
+
+
+class Spellcaster(UnitHero):
     """
        They say that a battle mage who succumbed to the witchcraft
        rage, can slay a hundred monsters, leaving
@@ -150,19 +178,6 @@ class Spellcaster(Hero):
         super().__init__(ac_game)
 
 
-    def passive(self):
-        """Spellcaster can use warriors as mages and vice versa."""
-        Ability.unit_mix_passive(self)
-
-
-    def ability(self, del_units=None):
-        """Spellcaster may be used as warrior or mage
-        improved ability allows reset all dungeon dice"""
-        self.is_ability_used = True
-        return (self.__improved_ability() if self.improved 
-                else Ability.unit_ability(self, del_units))
-
-
     def __improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} '
@@ -171,15 +186,6 @@ class Spellcaster(Hero):
         self.ac_game.dungeon.clear()
         self.ac_game.dragon_lair.clear()
 
-
-    def ability_check(self, usage=None, *args, **params):
-        """Spellcaster may be used as warrior or mage.
-           If game asks a unit - return True."""
-        if self.is_ability_used:
-            return False
-        return (self.__improved_ability_check(usage, args, params) if self.improved 
-                else Ability.unit_ability_check(self, usage, args, params))      
-        
 
     def __improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
@@ -199,7 +205,7 @@ class Spellcaster(Hero):
                                  'кубики подземелья.\n'.format(self.ability_name))
 
 
-class Crusader(Hero):
+class Crusader(UnitHero):
     """
        The holy warrior who fights in the name
        your god. She regularly pays tithing and
@@ -222,29 +228,6 @@ class Crusader(Hero):
         super().__init__(ac_game)
 
 
-    def passive(self):
-        """Crusader can use warriors as clerics and vice versa."""
-        Ability.unit_mix_passive(self)
-
-
-    def ability(self, del_units=None):
-        """Crusader may be used as warrior or cleric
-        improved ability allows kill all monsters,
-        open all chests, drink all potion and 
-        reset dragon lair"""
-        self.is_ability_used = True
-        return self.__improved_ability() if self.improved else Ability.unit_ability(self, del_units)
-
-
-    def ability_check(self, usage=None, *args, **params):
-        """Spellcaster may be used as warrior or mage.
-           If game asks a unit - return True."""
-        if self.is_ability_used:
-            return False
-        return (self.__improved_ability_check(usage, args, params) if self.improved 
-                else Ability.unit_ability_check(self, usage, args, params))      
-
-
     def __improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
@@ -258,7 +241,8 @@ class Crusader(Hero):
            Checks availability of dungeon dice."""
         if usage != 'ability':
             return False
-        return True if any([self.ac_game.dungeon, self.ac_game.dragon_lair]) else False
+        return True if all((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
+                           self.ac_game.treasures) else False
             
 
     def improve(self):
@@ -268,7 +252,7 @@ class Crusader(Hero):
         self.ability_name = "Божественное вмешательство"
         
         self.ac_game.print_delay('Новая активная способность - "{}":\n'
-                                 'сбростьте 1 жетон сокровища,'
+                                 'сбросьте 1 жетон сокровища,'
                                  'чтобы сбросить всех монстров, '
                                  'открыть все сундуки, выпить все зелья и ' 
                                  'сбросить все кубики из логова дракона.\n'

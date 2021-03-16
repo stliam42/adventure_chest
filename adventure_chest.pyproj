@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>067cfb85-b9a8-4d1e-b856-56fa3f7fce00</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>test.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,7 +25,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="adventure_chest.py" />
-    <Compile Include="dice.py">
+    <Compile Include="group.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="exceptions.py">
