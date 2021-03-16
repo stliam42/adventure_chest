@@ -1,7 +1,7 @@
 from time import sleep
 import sys
 
-from dice import White_die, Black_die
+from group import Party, Dungeon
 from stats import Stats
 from settings import Settings
 from treasures import Treasures
@@ -22,9 +22,6 @@ class AdventureChest():
         self.settings = Settings()
         #self.__request_settings()      #FIXME
 
-        # Dice
-        self.white_die = White_die()
-        self.black_die = Black_die()
 
         # Treasures
         self.treasures = Treasures(self)
@@ -72,8 +69,8 @@ class AdventureChest():
 
     def _reset_dungeon(self):
         """Reset dungeon"""
-        self.party = self.white_die.roll(self.settings.white_dice)
-        self.dungeon = []
+        self.party = Party()
+        self.dungeon = Dungeon()
         self.dragon_lair = []
         self.stats.dungeon_level = 1
         self.treasures.clear()
@@ -134,7 +131,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon = ["Сундук"]*3 + ["Зелье"]*3# self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -204,85 +201,97 @@ class AdventureChest():
 
 
     def _action(self):
-        """Return number of action and dictionary (action-number)"""
+        """Requests an action and calls needed method"""
+        while True:
+            # Moves dragons to dragons' lair
+            if 'Дракон' in self.dungeon:
+                self._dragon_lair()
+
+            message, ACTIONS = self.__create_actions_message()
+            print(*message, sep = ", ", end = '.\n')
+            while True:
+                try:
+                    action = int(input("Ваш выбор: "))
+                    print('')
+                    if action > len(message): 
+                        raise ValueError
+                except ValueError:
+                    print("Некорректный ввод")
+                else:
+                    # Actions
+                    if action == ACTIONS['fight']:
+                        self._battle()
+                    elif action == ACTIONS['scroll']:
+                        self._scroll()
+                    elif action == ACTIONS['ability']:
+                        self.hero.ability()
+                    elif action == ACTIONS['treasure']:
+                        self.treasures.use_noncombat()
+                    elif action == ACTIONS['retreat']:
+                        raise Defeat
+                    #break
+
+
+    def __create_actions_message(self):
+        """ Create list that contains allowed actions
+            and returs it with actions dictionary """
         # Prepare variables to create an action request.
-        request = []
-        FIGHT=SCROLL=ABILITY=TREASURE=RETREAT=0
+        message = []
+        ACTIONS = {"fight" : None,
+                   "reward" : None,
+                   "scroll" : None,
+                   "ability" : None,
+                   "treasure" : None,
+                   "retreaet" : None,
+                   }
+        FIGHT=REWARD=SCROLL=ABILITY=TREASURE=RETREAT=0
         action_number = 1
 
         # Create a request containing all your possibilities
         # Fight
-        request.append('Сражаться - {}'.format(action_number))
-        FIGHT = action_number
-        action_number += 1
-                
+        if self.dungeon.is_monsters() or self.stats.dragon_awake:
+            message.append('Сражаться - {}'.format(action_number))
+            FIGHT = action_number
+            action_number += 1
+
+        # Reward
+        elif self.dungeon.is_reward():
+            message.append('Получить награду - {}'.format(action_number))
+            REWARD = action_number
+            action_number += 1
+
         # Scroll
         if "Свиток" in self.party:
-            request.append('Использовать свиток - {}'.format(action_number))
+            message.append('Использовать свиток - {}'.format(action_number))
             SCROLL = action_number
             action_number += 1
 
         # Hero ability
         if self.hero.ability_check(usage='ability'):
-            request.append('Использовать способность героя - {}'
+            message.append('Использовать способность героя - {}'
                            .format(action_number))
             ABILITY = action_number
             action_number += 1
 
         # Treasure
         if self.treasures.is_noncombat():
-            request.append('Использовать сокровище - {}'.format(action_number))
+            message.append('Использовать сокровище - {}'.format(action_number))
             TREASURE = action_number
             action_number += 1
 
         # Reatreat
-        request.append('Отступить - {}'.format(action_number))
+        message.append('Отступить - {}'.format(action_number))
         RETREAT = action_number
 
-        print(*request, sep = ", ", end = '.\n')
-        while True:
-            try:
-                action = int(input("Ваш выбор: "))
-                print('')
-                if action > action_number: 
-                    raise ValueError
-            except ValueError:
-                print("Некорректный ввод")
-            else:
-                # Actions
-                if action == FIGHT:
-                    fight()
-                elif action == SCROLL:
-                    self._scroll()
-                elif action == ABILITY:
-                    self.hero.ability()
-                elif action == TREASURE:
-                    self.treasures.use_noncombat()
-                elif action == RETREAT:
-                    raise Defeat
-                break
+        return message, ACTIONS
 
 
     def _battle(self):
-        """Battle cycle"""
-        while True:
-            self._print_party_info()
-
-            # Moves dragons to dragons' lair
-            if 'Дракон' in self.dungeon:
-                self._dragon_lair()
-
-            # Break the cycle if no monsters left
-            if ("Гоблин" not in self.dungeon and "Скелет" not in self.dungeon and 
-                "Слизень" not in self.dungeon and not self.stats.dragon_awake):
-                break
-            # Request an action with monsters fight
-            elif ("Гоблин" in self.dungeon or "Скелет" in self.dungeon or 
-                "Слизень" in self.dungeon):
-                self._action(self._fight)
-            # Request an action with dragon fight
-            else:
-                self._action(self._dragon_fight)
+        """Calls common figt or dragon fight"""
+        if self.dungeon.is_monsters:
+            self._fight()
+        else:
+            self._dragon_fight()
 
             
     def _fight(self):

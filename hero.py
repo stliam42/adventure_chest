@@ -9,6 +9,7 @@ def __create_hero_list():
                     getmembers(modules[__name__], isclass) 
                     if issubclass(class_, Hero)]
     available_heroes.remove(Hero)
+    available_heroes.remove(UnitHero)
     return available_heroes
 
 

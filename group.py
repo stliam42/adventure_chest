@@ -54,6 +54,7 @@ class Group:
         """Clear a group"""
         self.group.clear()
 
+
 class Party(Group):
     """Class for AdventureChest party"""
 
@@ -74,5 +75,10 @@ class Dungeon(Group):
         return True if ("Гоблин" in self.group or 
                         "Скелет" in self.group or 
                         "Слизень" in self.group) else False
+
+    def is_reward(self):
+        """Returns true if there are chests of potions in a dungeon"""
+        return True if ("Сундук" in self.group or 
+                        "Зелье" in self.group) else False
 
 
