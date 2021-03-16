@@ -124,7 +124,8 @@ class Hero:
         return self.name
 
     def __str__(self):
-        return (("Ваш герой - \"{}\". Опыт - {} ед.\nСпособность \"{}\" ")
+        return ((("Ваш герой - \"{}\". Опыт - {} ед.\n") + 
+                ("Способность \"{}\" "))
                 .format(self.name, self.exp, self.ability_name) + 
                 ("использована." if self.is_ability_used 
                  else "не использована."))

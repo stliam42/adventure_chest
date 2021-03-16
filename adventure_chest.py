@@ -409,8 +409,7 @@ class AdventureChest():
 
     def _reward(self):
         """Reward cycle"""
-        self.print_delay("Вы победили всех монстров: "
-                         "время брать награду.\n")
+        self.print_delay("Время брать награду:\n")
         while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
             self.print_delay('Кубики партии - {}'.format(self.party))
             self.print_delay('Кубики подземелья - {}\n'.format(self.dungeon))

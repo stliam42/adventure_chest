@@ -123,7 +123,8 @@ class Treasures():
             self.ac_game.party.append(self.ac_game._get_item(self.ac_game.white_die.sides))
         # Dragon bait
         elif active_treasure == "Приманка для дракона":
-            self.ac_game.print_delay("Все кубики подземелья были превращены в драконьи морды.\n")
+            self.ac_game.print_delay("Все кубики подземелья"
+                                     "были превращены в драконьи морды.\n")
             for i in range(len(self.ac_game.dungeon)):
                 self.ac_game.dungeon[i] = "Дракон"
         # City portal
@@ -137,7 +138,7 @@ class Treasures():
         for treasure in self._treasures:
             if treasure == "Городской портал":
                 exp += 1
-        exp += self._treasures.count("Драконьи чешуйки")//2 * 2
+        exp += self._treasures.count("Драконьи чешуйки") // 2 * 2
         return exp
 
 
