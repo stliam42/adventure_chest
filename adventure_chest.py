@@ -70,6 +70,7 @@ class AdventureChest():
     def _reset_dungeon(self):
         """Reset dungeon"""
         self.party = Party()
+        self.party.add_unit(n=self.settings.white_dice)
         self.dungeon = Dungeon()
         self.dragon_lair = []
         self.stats.dungeon_level = 1
@@ -131,7 +132,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(n=monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -203,6 +204,7 @@ class AdventureChest():
     def _action(self):
         """Requests an action and calls needed method"""
         while True:
+            self._print_party_info()
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
@@ -242,46 +244,45 @@ class AdventureChest():
                    "scroll" : None,
                    "ability" : None,
                    "treasure" : None,
-                   "retreaet" : None,
+                   "retreat" : None,
                    }
-        FIGHT=REWARD=SCROLL=ABILITY=TREASURE=RETREAT=0
         action_number = 1
 
         # Create a request containing all your possibilities
         # Fight
         if self.dungeon.is_monsters() or self.stats.dragon_awake:
             message.append('Сражаться - {}'.format(action_number))
-            FIGHT = action_number
+            ACTIONS['fight'] = action_number
             action_number += 1
 
         # Reward
         elif self.dungeon.is_reward():
             message.append('Получить награду - {}'.format(action_number))
-            REWARD = action_number
+            ACTIONS['reward'] = action_number
             action_number += 1
 
         # Scroll
         if "Свиток" in self.party:
             message.append('Использовать свиток - {}'.format(action_number))
-            SCROLL = action_number
+            ACTIONS['scroll'] = action_number
             action_number += 1
 
         # Hero ability
         if self.hero.ability_check(usage='ability'):
             message.append('Использовать способность героя - {}'
                            .format(action_number))
-            ABILITY = action_number
+            ACTIONS['ability'] = action_number
             action_number += 1
 
         # Treasure
         if self.treasures.is_noncombat():
             message.append('Использовать сокровище - {}'.format(action_number))
-            TREASURE = action_number
+            ACTIONS['treasure'] = action_number
             action_number += 1
 
         # Reatreat
         message.append('Отступить - {}'.format(action_number))
-        RETREAT = action_number
+        ACTIONS['retreat'] = action_number
 
         return message, ACTIONS
 
