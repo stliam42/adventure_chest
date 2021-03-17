@@ -70,6 +70,7 @@ class AdventureChest():
     def _reset_dungeon(self):
         """Reset dungeon"""
         self.party = Party()
+        self.party.add_unit(n=self.settings.white_dice)
         self.dungeon = Dungeon()
         self.dragon_lair = []
         self.stats.dungeon_level = 1
@@ -131,7 +132,7 @@ class AdventureChest():
         monster_num = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(n=monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -203,6 +204,7 @@ class AdventureChest():
     def _action(self):
         """Requests an action and calls needed method"""
         while True:
+            self._print_party_info()
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
@@ -218,18 +220,20 @@ class AdventureChest():
                 except ValueError:
                     print("Некорректный ввод")
                 else:
-                    # Actions
-                    if action == ACTIONS['fight']:
-                        self._battle()
-                    elif action == ACTIONS['scroll']:
-                        self._scroll()
-                    elif action == ACTIONS['ability']:
-                        self.hero.ability()
-                    elif action == ACTIONS['treasure']:
-                        self.treasures.use_noncombat()
-                    elif action == ACTIONS['retreat']:
-                        raise Defeat
-                    #break
+                    break
+
+            # Actions
+            if action == ACTIONS['fight']:
+                self._battle()
+            elif action == ACTIONS['scroll']:
+                self._scroll()
+            elif action == ACTIONS['ability']:
+                self.hero.ability()
+            elif action == ACTIONS['treasure']:
+                self.treasures.use_noncombat()
+            elif action == ACTIONS['retreat']:
+                raise Defeat
+            #break
 
 
     def __create_actions_message(self):
@@ -242,46 +246,45 @@ class AdventureChest():
                    "scroll" : None,
                    "ability" : None,
                    "treasure" : None,
-                   "retreaet" : None,
+                   "retreat" : None,
                    }
-        FIGHT=REWARD=SCROLL=ABILITY=TREASURE=RETREAT=0
         action_number = 1
 
         # Create a request containing all your possibilities
         # Fight
         if self.dungeon.is_monsters() or self.stats.dragon_awake:
             message.append('Сражаться - {}'.format(action_number))
-            FIGHT = action_number
+            ACTIONS['fight'] = action_number
             action_number += 1
 
         # Reward
         elif self.dungeon.is_reward():
             message.append('Получить награду - {}'.format(action_number))
-            REWARD = action_number
+            ACTIONS['reward'] = action_number
             action_number += 1
 
         # Scroll
         if "Свиток" in self.party:
             message.append('Использовать свиток - {}'.format(action_number))
-            SCROLL = action_number
+            ACTIONS['scroll'] = action_number
             action_number += 1
 
         # Hero ability
         if self.hero.ability_check(usage='ability'):
             message.append('Использовать способность героя - {}'
                            .format(action_number))
-            ABILITY = action_number
+            ACTIONS['ability'] = action_number
             action_number += 1
 
         # Treasure
         if self.treasures.is_noncombat():
             message.append('Использовать сокровище - {}'.format(action_number))
-            TREASURE = action_number
+            ACTIONS['treasure'] = action_number
             action_number += 1
 
         # Reatreat
         message.append('Отступить - {}'.format(action_number))
-        RETREAT = action_number
+        ACTIONS['retreat'] = action_number
 
         return message, ACTIONS
 
@@ -620,34 +623,19 @@ class AdventureChest():
         """ Checks a unit and a monster interaction
             and kills monsters
         """
-        assert (unit in self.white_die.sides and 
-                monster in self.black_die.sides), "Для проверки юнит-монстр пришел не юнит"
+        assert (unit in self.party.units and 
+                monster in self.dungeon.units), ("Для проверки юнит-монстр пришел"
+                                                 "не юнит или не монстр")
 
         if (unit in self.units_dict['warrior'] and monster == "Гоблин" or
                 unit in self.units_dict['cleric'] and monster == "Скелет" or
                 unit in self.units_dict['mage'] and monster == "Слизень" or
                 unit in self.units_dict['guardian']):
-            self._kill_all(monster)
+            self.dungeon.delete_unit(unit=monster, all=True)
         else:
-            self._kill_one(monster)
+            self.dungeon.delete_unit(unit=monster)
 
-        self._kill_unit(unit)
-
-
-    def _kill_all(self, monster):
-        """Kill all monsters of the same type"""
-        while monster in self.dungeon:
-            self.dungeon.remove(monster)
-
-
-    def _kill_one(self, monster):
-        """Kill one monster"""
-        self.dungeon.remove(monster)
-
-
-    def _kill_unit(self, unit):
-        """Moves a unit from the party to the cemetery"""
-        self.party.remove(unit)
+        self.party.delete_unit(unit)
 
 
     def print_delay(self, message):

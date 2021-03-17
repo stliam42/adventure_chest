@@ -54,6 +54,10 @@ class Group:
         """Clear a group"""
         self.group.clear()
 
+    def count(self, unit:str):
+        """Counts a unit in a group"""
+        return self.group.count(unit)
+
 
 class Party(Group):
     """Class for AdventureChest party"""

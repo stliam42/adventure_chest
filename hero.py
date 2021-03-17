@@ -159,6 +159,12 @@ class UnitHero(Hero):
         return (self.__improved_ability_check(usage, args, params) if self.improved 
                 else Ability.unit_ability_check(self, usage, args, params)) 
 
+    def __improved_ability(self, *args, **kwargs):
+        pass
+
+    def __improved_ability_check(self, *args, **kwargs):
+        pass
+
 
 class Spellcaster(UnitHero):
     """
