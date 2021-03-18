@@ -12,14 +12,14 @@ class Group(list):
             self += [choice(self.units) for unit in range(n)]
 
 
-    def del_unit(self, unit:str, all=False):
+    def delete_unit(self, unit:str, all=False):
         """Kills unit in a group. If parametr 'all' is True:
            kills all units of this type"""
         if all:
-            while unit in self.group:
-                self.group.remove(unit)
+            while unit in self:
+                self.remove(unit)
         else:
-            self.group.remove(unit)
+            self.remove(unit)
 
 
 class Party(Group):
@@ -30,6 +30,12 @@ class Party(Group):
         super().__init__()
 
 
+    def create(self, number):
+        """Create a party оf a given number"""
+        self.clear()
+        self.add_unit(n=number)
+
+
 class Dungeon(Group):
     """Class for AdventureChest dungeon"""
     
@@ -37,16 +43,19 @@ class Dungeon(Group):
         self.units = ["Гоблин", "Скелет", "Слизень", "Зелье", "Сундук", "Дракон"]
         super().__init__()
 
+
     def is_monsters(self):
         """Returns True if there are monsters in a dungeon"""
         return True if ("Гоблин" in self or 
                         "Скелет" in self or 
                         "Слизень" in self) else False
 
+
     def is_reward(self):
         """Returns true if there are chests of potions in a dungeon"""
         return True if ("Сундук" in self or 
                         "Зелье" in self) else False
+
 
     def move_dragons(self) -> list:
         """Removes all dragons and return it"""
@@ -56,4 +65,14 @@ class Dungeon(Group):
 
         return dragons
 
+
+#class DragonLair(Group):
+#    """Dragon lair class for AdventureChest game"""
+
+#    def __init__(self):
+#        self.is_awake = False
+#        super().__init__()
+
+#    def check_awake(self):
+#        if len(self) >
 
