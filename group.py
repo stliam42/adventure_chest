@@ -28,10 +28,10 @@ class Group:
         raise StopIteration
 
 
-    def add_unit(self, unit:str='', n:int=1):
+    def add_unit(self, units:list=None, n:int=1):
         """Adds n unit to the group"""
-        if unit:
-            self.group.append(unit)
+        if units:
+            self.group.extend(units)
         else:
             self.group += [choice(self.units) for unit in range(n)]
 
@@ -57,6 +57,16 @@ class Group:
     def count(self, unit:str):
         """Counts a unit in a group"""
         return self.group.count(unit)
+
+    def pop(self, index:int=-1):
+        """Pop the last unit or [index] unit and return it"""
+        return self.group.pop(index)
+
+    def index(self, unit:str):
+        """Returns first index of unit"""
+        return self.group.index(unit)
+
+
 
 
 class Party(Group):
@@ -84,5 +94,13 @@ class Dungeon(Group):
         """Returns true if there are chests of potions in a dungeon"""
         return True if ("Сундук" in self.group or 
                         "Зелье" in self.group) else False
+
+    def move_dragons(self) -> list:
+        """Removes all dragons and return it"""
+        dragons = []
+        while "Дракон" in self.group:
+            dragons.append(self.group.pop(self.group.index('Дракон')))
+
+        return dragons
 
 

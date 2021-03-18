@@ -1,12 +1,17 @@
 from time import sleep
 import sys
 
+
 from group import Party, Dungeon
 from stats import Stats
 from settings import Settings
 from treasures import Treasures
 from exceptions import Defeat, Leave
 import hero 
+import pymorphy2
+
+
+morph = pymorphy2.MorphAnalyzer()
 
 
 class AdventureChest():
@@ -129,10 +134,10 @@ class AdventureChest():
         available_dice = self.settings.black_dice - len(self.dragon_lair)
 
         # Limiting the number of dice 
-        monster_num = min(available_dice, self.stats.dungeon_level)
+        monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(n=monster_num) # self.black_die.roll(monster_num) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(n=monster_number) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -179,20 +184,13 @@ class AdventureChest():
     def _dragon_lair(self):
         """Move dragons to dragon's lair"""
 
-        # Choose the right form of "die"
-        if self.dungeon.count("Дракон") == 1:
-            dice_form = 'кубик'
-        elif self.dungeon.count("Дракон") < 5:
-            dice_form = 'кубика'
-        elif self.dungeon.count("Дракон") >= 5:
-            dice_form = 'кубиков'
-
+        # Move dragons to lair (morph is used for number matching)
         self.print_delay('{} {} "Дракон" перемещаются в логово дракона.\n'
-                         .format(self.dungeon.count("Дракон"), dice_form))
+                         .format(self.dungeon.count("Дракон"), 
+                                 (morph.parse('кубик')[0].make_agree_with_number
+                                  (self.dungeon.count("Дракон")).word)))
 
-        # Move dragons to lair
-        while "Дракон" in self.dungeon:
-            self.dragon_lair.append(self.dungeon.pop(self.dungeon.index('Дракон')))
+        self.dragon_lair += self.dungeon.move_dragons()
 
         self._print_party_info()
 
