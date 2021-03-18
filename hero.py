@@ -1,9 +1,11 @@
+""" Module with heroes for AdventureChest game """
+
 from sys import modules
 from inspect import getmembers, isclass
 from random import choice
 
 
-def __create_hero_list():
+def create_hero_list():
     """This function creates list of heroes in this module"""
     available_heroes = [class_ for name, class_ in 
                     getmembers(modules[__name__], isclass) 
@@ -266,4 +268,4 @@ class Crusader(UnitHero):
                                  .format(self.ability_name))
 
 
-__avaible_heroes = __create_hero_list()
+_available_heroes = create_hero_list()

@@ -8,10 +8,7 @@ from settings import Settings
 from treasures import Treasures
 from exceptions import Defeat, Leave
 import hero 
-import pymorphy2
-
-
-morph = pymorphy2.MorphAnalyzer()
+import pymorphy2; morph = pymorphy2.MorphAnalyzer()
 
 
 class AdventureChest():
