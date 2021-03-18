@@ -44,7 +44,7 @@ class AdventureChest():
 
         # Hero
         self.hero = hero.Crusader(self)
-        self.hero.get_exp(5)
+        #self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()

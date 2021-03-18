@@ -5,7 +5,7 @@ from inspect import getmembers, isclass
 from random import choice
 
 
-def create_hero_list():
+def __create_heroes_list():
     """This function creates list of heroes in this module"""
     available_heroes = [class_ for name, class_ in 
                     getmembers(modules[__name__], isclass) 
@@ -17,8 +17,8 @@ def create_hero_list():
 
 def get_random_hero(ac_game):
     """Return random hero"""
-    global __avaible_heroes
-    return choice(__avaible_heroes)(ac_game)
+    
+    return choice(__create_heroes_list())(ac_game)
 
 
 class Ability:
@@ -150,21 +150,23 @@ class UnitHero(Hero):
         """UnitHero may be used as one_type or another_type
         improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
-        return (self.__improved_ability() if self.improved 
+        return (self._improved_ability() if self.improved 
                 else Ability.unit_ability(self, del_units))
+
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
            If game asks a unit - return True."""
+        print('unithero')
         if self.is_ability_used:
             return False
-        return (self.__improved_ability_check(usage, args, params) if self.improved 
+        return (self._improved_ability_check(usage, args, params) if self.improved 
                 else Ability.unit_ability_check(self, usage, args, params)) 
 
-    def __improved_ability(self, *args, **kwargs):
+    def _improved_ability(self, *args, **kwargs):
         pass
 
-    def __improved_ability_check(self, *args, **kwargs):
+    def _improved_ability_check(self, *args, **kwargs):
         pass
 
 
@@ -187,7 +189,7 @@ class Spellcaster(UnitHero):
         super().__init__(ac_game)
 
 
-    def __improved_ability(self):
+    def _improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} '
                                  'и сбрасываете все кубики подземелья'
@@ -196,7 +198,7 @@ class Spellcaster(UnitHero):
         self.ac_game.dragon_lair.clear()
 
 
-    def __improved_ability_check(self, usage, args, params):
+    def _improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
         if usage != 'ability':
@@ -237,7 +239,7 @@ class Crusader(UnitHero):
         super().__init__(ac_game)
 
 
-    def __improved_ability(self):
+    def _improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
                                  .format(self.ability_name))
@@ -245,9 +247,10 @@ class Crusader(UnitHero):
         self.ac_game.dragon_lair.clear()
 
 
-    def __improved_ability_check(self, usage, args, params):
+    def _improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
+        print('crusader_check')
         if usage != 'ability':
             return False
         return True if all((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
@@ -266,6 +269,3 @@ class Crusader(UnitHero):
                                  'открыть все сундуки, выпить все зелья и ' 
                                  'сбросить все кубики из логова дракона.\n'
                                  .format(self.ability_name))
-
-
-_available_heroes = create_hero_list()
