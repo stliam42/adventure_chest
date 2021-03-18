@@ -1,5 +1,5 @@
 from time import sleep
-import sys
+from random import choice
 
 
 from group import Party, Dungeon
@@ -38,6 +38,10 @@ class AdventureChest():
                            "monster" : ("Гоблин", "Скелет", "Слизень")
                            }
 
+        # Groups
+        self.party = Party()
+        self.dungeon = Dungeon()
+
         # Hero
         self.hero = hero.Crusader(self)
         self.hero.get_exp(5)
@@ -71,9 +75,8 @@ class AdventureChest():
 
     def _reset_dungeon(self):
         """Reset dungeon"""
-        self.party = Party()
-        self.party.add_unit(n=self.settings.white_dice)
-        self.dungeon = Dungeon()
+        self.party.create(number=self.settings.white_dice)
+        self.dungeon.clear()
         self.dragon_lair = []
         self.stats.dungeon_level = 1
         self.treasures.clear()
@@ -84,6 +87,7 @@ class AdventureChest():
         """Resets game statistics and other parametrs"""
         self.stats.reset()
         self.hero.improved = False
+        #self._reset_dungeon()
 
 
     def _print_dungeon_settings(self):
@@ -105,6 +109,7 @@ class AdventureChest():
                 self._end_of_game()
             try:
                 self._new_dungeon_level()
+
                 self._action()
             except Defeat:
                 self._leave_the_dungeon(exp=False)
@@ -134,7 +139,7 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(n=monster_number) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=["Дракон", "Дракон", "Дракон"]) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
 
     def _end_of_game(self):
@@ -182,16 +187,17 @@ class AdventureChest():
         """Move dragons to dragon's lair"""
 
         # Move dragons to lair (morph is used for number matching)
-        self.print_delay('{} {} "Дракон" перемещаются в логово дракона.\n'
+        self.print_delay('{} {} "Дракон" {} в логово дракона.\n'
                          .format(self.dungeon.count("Дракон"), 
-                                 (morph.parse('кубик')[0].make_agree_with_number
-                                  (self.dungeon.count("Дракон")).word)))
+                                 morph.parse('кубик')[0].make_agree_with_number(self.dungeon.count("Дракон")).word,
+                                 "перемещается" if self.dungeon.count("Дракон") == 1 else "перемещаются"))
 
-        self.dragon_lair += self.dungeon.move_dragons()
+        self.dragon_lair.extend(self.dungeon.move_dragons())
 
         self._print_party_info()
 
-        if len(self.dragon_lair) >= 3 and not self.stats.dragon_awake:
+        if (len(self.dragon_lair) >= self.settings.dragon_slayers_number 
+            and not self.stats.dragon_awake):
             self.print_delay('Дракон пробуждается!\n')
             self.stats.dragon_awake = True
 
@@ -203,6 +209,10 @@ class AdventureChest():
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
+            # Leave the dangeon if it's empty
+            if not self.dungeon and not self.stats.dragon_awake:
+                self._regrouping()
+                break
 
             message, ACTIONS = self.__create_actions_message()
             print(*message, sep = ", ", end = '.\n')
@@ -226,8 +236,12 @@ class AdventureChest():
                 self.hero.ability()
             elif action == ACTIONS['treasure']:
                 self.treasures.use_noncombat()
+            elif action == ACTIONS['reward']:
+                self._reward()
             elif action == ACTIONS['retreat']:
                 raise Defeat
+            elif action == ACTIONS['continue']:
+                break
             #break
 
 
@@ -242,7 +256,9 @@ class AdventureChest():
                    "ability" : None,
                    "treasure" : None,
                    "retreat" : None,
+                   "continue" : None
                    }
+
         action_number = 1
 
         # Create a request containing all your possibilities
@@ -257,36 +273,36 @@ class AdventureChest():
             message.append('Получить награду - {}'.format(action_number))
             ACTIONS['reward'] = action_number
             action_number += 1
-
         # Scroll
         if "Свиток" in self.party:
             message.append('Использовать свиток - {}'.format(action_number))
             ACTIONS['scroll'] = action_number
             action_number += 1
-
         # Hero ability
         if self.hero.ability_check(usage='ability'):
             message.append('Использовать способность героя - {}'
                            .format(action_number))
             ACTIONS['ability'] = action_number
             action_number += 1
-
         # Treasure
         if self.treasures.is_noncombat():
             message.append('Использовать сокровище - {}'.format(action_number))
             ACTIONS['treasure'] = action_number
             action_number += 1
-
         # Reatreat
-        message.append('Отступить - {}'.format(action_number))
-        ACTIONS['retreat'] = action_number
+        if self.dungeon.is_monsters() or self.stats.dragon_awake:
+            message.append('Отступить - {}'.format(action_number))
+            ACTIONS['retreat'] = action_number
+        else:
+            message.append('Продолжить - {}'.format(action_number))
+            ACTIONS['continue'] = action_number
 
         return message, ACTIONS
 
 
     def _battle(self):
         """Calls common figt or dragon fight"""
-        if self.dungeon.is_monsters:
+        if self.dungeon.is_monsters():
             self._fight()
         else:
             self._dragon_fight()
@@ -320,7 +336,7 @@ class AdventureChest():
         self.print_delay("Битва с драконом!\n")
 
         # Choosing units who will fight with a dragon
-        self.print_delay("Выбери сопартийцов, которые будут сражаться с драконом:")
+        self.print_delay("Выбери сопартийцев, которые будут сражаться с драконом:")
         for i in range(self.settings.dragon_slayers_number):
             self.print_delay('Кубики подземелья - {}'.format(self.party))
             self.print_delay('Драконоборцы - {}'.format(dragon_slayers))
@@ -398,8 +414,8 @@ class AdventureChest():
                 black_reroll_list.append(self.dungeon.pop(self.dungeon.index(item)))
 
         # Roll new items
-        white_rerolled_list = self.white_die.roll(len(white_reroll_list))
-        black_rerolled_list = self.black_die.roll(len(black_reroll_list))
+        white_rerolled_list = [choice(self.party.units) for i in range(len(white_reroll_list))]
+        black_rerolled_list = [choice(self.dungeon.units) for i in range(len(black_reroll_list))]
 
         # Print transformation
         self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
@@ -422,13 +438,16 @@ class AdventureChest():
             self.print_delay('Ваш выбор: ')
 
             action = self._get_item(self.dungeon, back=True)
-            if action == 'back': break
+
+            if action == 'back': 
+                break
+
             del_units = "Свиток" if action == "Сундук" else None
 
             print(("Выберите сопартийца, который ") + ("откроет сундуки:"
                   if action == "Сундук" else "выпьет зелья:"))
             unit = self._get_unit(del_units)
-            self._kill_unit(unit)
+            self.party.delete_unit(unit)
 
             if action == "Сундук":
                 self._chest(unit)
@@ -462,7 +481,7 @@ class AdventureChest():
                              .format(resurection_number))
             self.dungeon.remove("Зелье")
             self.print_delay('Кого хотите вернуть?')
-            self.party.append(self._get_item(self.white_die.sides))
+            self.party.append(self._get_item(self.party.units))
 
         # Revomes remaining potions
         while "Зелье" in self.dungeon:
@@ -471,7 +490,7 @@ class AdventureChest():
 
     def _regrouping(self):
         """Regrouping phase"""
-        self.print_delay("\nВы зачистили подземелье!\n")
+        self.print_delay("Вы зачистили подземелье!\n")
         self._print_party_info()
 
         if self.stats.dungeon_level == self.settings.max_dungeon_level:
