@@ -56,8 +56,6 @@ class Treasures():
         for _ in range(n):
             self._treasures.append(self.__treasures_pull.pop(randint(0, len(self.__treasures_pull) - 1)))
             self.ac_game.print_delay("Получено сокровище - '{}'".format(self._treasures[-1]))
-            if "Сундук" in self.ac_game.dungeon:
-                self.ac_game.dungeon.remove('Сундук')
         print('')
         
 
@@ -141,6 +139,10 @@ class Treasures():
         exp += self._treasures.count("Драконьи чешуйки") // 2 * 2
         return exp
 
+
+    def discard(self, treasure:str):
+        """Return a treasure to the pull"""
+        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(treasure)))
 
     def reset(self):
         """Reset treasures lists"""

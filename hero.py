@@ -157,7 +157,7 @@ class UnitHero(Hero):
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
            If game asks a unit - return True."""
-        print('unithero')
+        
         if self.is_ability_used:
             return False
         return (self._improved_ability_check(usage, args, params) if self.improved 
@@ -241,8 +241,15 @@ class Crusader(UnitHero):
 
     def _improved_ability(self):
         """Resets all dungeon dice"""
-        self.ac_game.print_delay('Вы используете способность {} и сбрасываете все кубики подземелья'
+        self.ac_game.print_delay('Вы используете способность "{}".\n'
                                  .format(self.ability_name))
+        self.ac_game.print_delay('Выберите сокровище, которое хотите сбросить, '
+                                 'чтобы зачистить подземелье:')
+        self.ac_game.treasures.discard(self.ac_game._get_item(self.ac_game.treasures))
+        self.ac_game.print_delay('Сундуки:')
+        self.ac_game._chest('Вор')
+        self.ac_game.print_delay('Зелья:')
+        self.ac_game._potion()
         self.ac_game.dungeon.clear()
         self.ac_game.dragon_lair.clear()
 
@@ -250,7 +257,6 @@ class Crusader(UnitHero):
     def _improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
-        print('crusader_check')
         if usage != 'ability':
             return False
         return True if all((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
@@ -264,7 +270,7 @@ class Crusader(UnitHero):
         self.ability_name = "Божественное вмешательство"
         
         self.ac_game.print_delay('Новая активная способность - "{}":\n'
-                                 'сбросьте 1 жетон сокровища,'
+                                 'сбросьте 1 жетон сокровища, '
                                  'чтобы сбросить всех монстров, '
                                  'открыть все сундуки, выпить все зелья и ' 
                                  'сбросить все кубики из логова дракона.\n'

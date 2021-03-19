@@ -460,7 +460,9 @@ class AdventureChest():
 
         # Guardians and thieves open all chests
         if unit in self.units_dict['thief'] or unit in self.units_dict['guardian']:
-                self.treasures.get_treasure(self.dungeon.count("Сундук"))
+            while "Сундук" in self.dungeon:
+                self.treasures.get_treasure()
+                self.dungeon.remove("Сундук")
 
         # Another units open one chest
         else:
