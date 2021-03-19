@@ -25,7 +25,7 @@ class Ability:
     """Class for common hero abilities"""
 
     @staticmethod
-    def unit_ability(hero, del_units:tuple) -> str:
+    def hero_as_unit_ability(hero, del_units:tuple) -> str:
         """Ability which allows you to use hero as unit.
            Returns unit"""
 
@@ -46,7 +46,7 @@ class Ability:
 
 
     @staticmethod
-    def unit_mix_passive(hero):
+    def units_interchangeability_passive(hero):
         """Passive, which allows you to use a unit of one type as another."""
         for key, unit in hero.ac_game.units_dict.items():
             if unit in hero.units:
@@ -54,7 +54,7 @@ class Ability:
 
 
     @staticmethod
-    def unit_ability_check(hero, usage, args, params):
+    def hero_as_unit_ability_check(hero, usage, args, params):
         """Checks if the hero can be used as a unit or not"""
         if usage != 'unit':
             return False
@@ -143,7 +143,7 @@ class UnitHero(Hero):
 
     def passive(self):
         """UnitHero can use one_tupe as another_type and vice versa."""
-        Ability.unit_mix_passive(self)
+        Ability.units_interchangeability_passive(self)
 
 
     def ability(self, del_units=None):
@@ -151,7 +151,7 @@ class UnitHero(Hero):
         improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
         return (self._improved_ability() if self.improved 
-                else Ability.unit_ability(self, del_units))
+                else Ability.hero_as_unit_ability(self, del_units))
 
 
     def ability_check(self, usage=None, *args, **params):
@@ -161,7 +161,7 @@ class UnitHero(Hero):
         if self.is_ability_used:
             return False
         return (self._improved_ability_check(usage, args, params) if self.improved 
-                else Ability.unit_ability_check(self, usage, args, params)) 
+                else Ability.hero_as_unit_ability_check(self, usage, args, params)) 
 
     def _improved_ability(self, *args, **kwargs):
         pass
