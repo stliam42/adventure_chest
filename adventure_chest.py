@@ -44,7 +44,7 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Crusader(self)
+        self.hero = hero.Knight(self)
         #self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
@@ -52,9 +52,6 @@ class AdventureChest():
 
         # Print the settings of current dungeon
         self._print_dungeon_settings()
-
-        # Applies hero's passive
-        self.hero.passive()
 
 
     #def __request_settings(self):
@@ -83,13 +80,11 @@ class AdventureChest():
         self.treasures.clear()
         self.hero.is_ability_used = False
 
-
     def reset_game(self):
         """Resets game statistics and other parametrs"""
         self.stats.reset()
         self.hero.improved = False
         #self._reset_dungeon()
-
 
     def _print_dungeon_settings(self):
         """Display dungeon settings"""
@@ -101,7 +96,6 @@ class AdventureChest():
                          .format(self.settings.white_dice))
         self.print_delay("Количество кубиков подземелья - {}."
                          .format(self.settings.white_dice))
-
 
     def game_procces_cycle(self):
         """Run the game"""
@@ -198,6 +192,10 @@ class AdventureChest():
         """Requests an action and calls needed method"""
         while True:
             self._print_party_info()
+            # Active passive ability
+            if not self.hero.is_passive_used:
+                self.hero.passive()
+                continue
             # Moves dragons to dragons' lair
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()

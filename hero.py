@@ -81,6 +81,7 @@ class Hero:
         #self.ability_name: str = 'unknown ability'
         self.exp: int = 0
         self.is_ability_used: bool = False
+        self.is_passive_used: bool = False
         self.improved: bool = False
         self.ac_game = ac_game
         self.__introduce()
@@ -118,7 +119,6 @@ class Hero:
         self.ac_game.print_delay(self.passive_info)
         self.ac_game.print_delay(self.ability_info)
 
-
     def __reset(self):
         """Reset a hero"""
         self.__init__(self.ac_game)
@@ -145,14 +145,12 @@ class UnitHero(Hero):
         """UnitHero can use one_tupe as another_type and vice versa."""
         Ability.units_interchangeability_passive(self)
 
-
     def ability(self, del_units=None):
         """UnitHero may be used as one_type or another_type
         improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
         return (self._improved_ability() if self.improved 
                 else Ability.hero_as_unit_ability(self, del_units))
-
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
@@ -188,7 +186,6 @@ class Spellcaster(UnitHero):
                              .format(self.ability_name, self.name))
         super().__init__(ac_game)
 
-
     def _improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность {} '
@@ -197,14 +194,12 @@ class Spellcaster(UnitHero):
         self.ac_game.dungeon.clear()
         self.ac_game.dragon_lair.clear()
 
-
     def _improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
         if usage != 'ability':
             return False
         return True if any([self.ac_game.dungeon, self.ac_game.dragon_lair]) else False
-            
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
@@ -238,7 +233,6 @@ class Crusader(UnitHero):
                              .format(self.ability_name, self.name))
         super().__init__(ac_game)
 
-
     def _improved_ability(self):
         """Resets all dungeon dice"""
         self.ac_game.print_delay('Вы используете способность "{}".\n'
@@ -253,7 +247,6 @@ class Crusader(UnitHero):
         self.ac_game.dungeon.clear()
         self.ac_game.dragon_lair.clear()
 
-
     def _improved_ability_check(self, usage, args, params):
         """Improved ability resets dungeon dice.
            Checks availability of dungeon dice."""
@@ -262,7 +255,6 @@ class Crusader(UnitHero):
         return True if all((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
                            self.ac_game.treasures) else False
             
-
     def improve(self):
         """Improves your hero and gives him new name and ability"""
         super().improve('"Паладином"')
@@ -275,3 +267,45 @@ class Crusader(UnitHero):
                                  'открыть все сундуки, выпить все зелья и ' 
                                  'сбросить все кубики из логова дракона.\n'
                                  .format(self.ability_name))
+
+
+class Knight(Hero):
+    """
+        The valiant knight is ignorant of magic, but in possession
+        with a sword he has no equal! Passing the test of fire
+        dragon slayer has studied all the weaknesses of his main
+        enemy. And to defeat the beast, he needs support
+        of only two different party members!
+    """
+
+    def __init__(self, ac_game):
+        self.name = "Рыцарь"
+        self.ability_name = "Боевой клич"
+        self.passive_info = ("Пассивный навык: когда вы формируете партию, "
+                             "все свитки становятся стражами.")
+        self.ability_info = ('Активная способность - "{}": превращает всех монстров '
+                             'в подземелье в драконов.'
+                             .format(self.ability_name))
+        super().__init__(ac_game)
+
+    def passive(self):
+        """ Replace all scrolls with guadrians when you form a party."""
+        scroll_counter = 0
+        while "Свиток" in self.ac_game.party:
+            self.ac_game.party[self.ac_game.party.index("Свиток")] = "Страж"
+            scroll_counter += 1
+        if scroll_counter:
+            self.ac_game.print_delay("При формировании партии {} {}."
+                                     .format(scroll_counter,
+                ('свиток был заменён стражем' if scroll_counter == 1 
+                    else 'свитка были заменёны стражами')))
+            print('')
+            self.is_passive_used = True
+        
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('"Убийцей драконов"')
+        self.name = "Убийца драконов"
+        
+        self.ac_game.print_delay('Новый пассивный навык - чтобы победить '
+                                 'дракона требуется 2 сопартийца, вместе 3.')
