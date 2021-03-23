@@ -66,13 +66,11 @@ class Dungeon(Group):
         return dragons
 
 
-#class DragonLair(Group):
-#    """Dragon lair class for AdventureChest game"""
+class DragonLair(Group):
+    """Dragon lair class for AdventureChest game"""
 
-#    def __init__(self):
-#        self.is_awake = False
-#        super().__init__()
-
-#    def check_awake(self):
-#        if len(self) >
+    @property
+    def is_awake(self):
+        """ Return True is Dragon lair has 3 dice or more"""
+        return True if len(self) >= 3 else False
 

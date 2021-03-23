@@ -21,11 +21,9 @@ class Treasures():
                                        "Воровские инструменты" : "Вор",
                                        "Свиток" : "Свиток"}
 
-
     def __iter__(self):
         self.i = 0
         return self
-
 
     def __next__(self):
         if self.i < len(self._treasures):
@@ -34,31 +32,25 @@ class Treasures():
             return result
         raise StopIteration
 
-
     def __repr__(self):
         return self._treasures
-    
 
     def __str__(self):
         return str(self._treasures)
 
-
     def __bool__(self):
         return True if self._treasures else False
 
-
     def clear(self):
         self._treasures.clear()
-
 
     def get_treasure(self, n=1):
         """Gets i treasures"""
         for _ in range(n):
             self._treasures.append(self.__treasures_pull.pop(randint(0, len(self.__treasures_pull) - 1)))
-            self.ac_game.print_delay("Получено сокровище - '{}'".format(self._treasures[-1]))
+            self.ac_game.print_delay("Получено сокровище - '{}'.".format(self._treasures[-1]))
         print('')
         
-
     def is_combat(self, del_list):
         """Return True if there are some combat treasures"""
         combat_set = self._combat_treasures & set(self._treasures)
@@ -68,7 +60,6 @@ class Treasures():
                 combat_set.remove(key)
 
         return True if combat_set else False
-
 
     def use_combat(self, del_members):
         """Gets combat treasure, creates temporary unit in a party and returns it"""
@@ -88,11 +79,9 @@ class Treasures():
         self.ac_game.party.insert(0, self._treasure_to_unit_dict[active_treasure])
         return self._treasure_to_unit_dict[active_treasure]
 
-
     def is_noncombat(self):
         """Return True if there are some noncombat treasures"""
         return True if (self._noncombat_treasures & set(self._treasures)) else False
-
 
     def use_noncombat(self):
         """Using noncombat treasure
@@ -114,7 +103,6 @@ class Treasures():
         elif active_treasure == "Кольцо невидимости":
             self.ac_game.print_delay("Все кубики из логова дракона были сброшены.\n")
             self.ac_game.dragon_lair.clear()
-            self.ac_game.stats.dragon_awake = False
         # Potion
         elif active_treasure == "Эликсир":
             self.ac_game.print_delay('Кого хотите вернуть?')
@@ -129,7 +117,6 @@ class Treasures():
         elif active_treasure == "Городской портал":
             raise Leave
 
-
     def count_exp(self) -> int:
         """Count treasures experience"""
         exp = len(self._treasures)
@@ -138,7 +125,6 @@ class Treasures():
                 exp += 1
         exp += self._treasures.count("Драконьи чешуйки") // 2 * 2
         return exp
-
 
     def discard(self, treasure:str):
         """Return a treasure to the pull"""

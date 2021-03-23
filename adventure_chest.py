@@ -2,7 +2,7 @@ from time import sleep
 from random import choice
 
 
-from group import Party, Dungeon
+from group import Party, Dungeon, DragonLair
 from stats import Stats
 from settings import Settings
 from treasures import Treasures
@@ -41,6 +41,7 @@ class AdventureChest():
         # Groups
         self.party = Party()
         self.dungeon = Dungeon()
+        self.dragon_lair = DragonLair()
 
         # Hero
         self.hero = hero.Crusader(self)
@@ -77,7 +78,7 @@ class AdventureChest():
         """Reset dungeon"""
         self.party.create(number=self.settings.white_dice)
         self.dungeon.clear()
-        self.dragon_lair = []
+        self.dragon_lair.clear()
         self.stats.dungeon_level = 1
         self.treasures.clear()
         self.hero.is_ability_used = False
@@ -109,7 +110,6 @@ class AdventureChest():
                 self._end_of_game()
             try:
                 self._new_dungeon_level()
-
                 self._action()
             except Defeat:
                 self._leave_the_dungeon(exp=False)
@@ -117,7 +117,6 @@ class AdventureChest():
                 self.print_delay('Вы восстанавливаете силы и '
                                  'готовитесь к следующему походу:')
                 self._leave_the_dungeon()
-    
 
     def _new_dungeon_level(self):
         """Creating new dungeon level"""
@@ -129,7 +128,6 @@ class AdventureChest():
         # Print info
         self._print_dungeon_info()
 
-
     def _create_dungeon(self):
         """Creating new monsters list"""
         # Calculating available dice
@@ -140,7 +138,6 @@ class AdventureChest():
 
         # Creating dungeon
         self.dungeon.add_unit(units=["Дракон", "Дракон", "Дракон"]) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
-
 
     def _end_of_game(self):
         """End of game"""
@@ -159,7 +156,6 @@ class AdventureChest():
             else:
                 self.print_delay('Некорректный ввод')
 
-
     def _print_party_info(self):
         """Print game info"""
         # Hero info
@@ -174,14 +170,12 @@ class AdventureChest():
         # Dragon lair
         self.print_delay('Логово дракона - {}\n'.format(self.dragon_lair))
 
-
     def _print_dungeon_info(self):
         """Print trip and dungeon level"""
         self.print_delay('-'*100)
         self.print_delay('Поход №{}, Уровень подземелья {}.\n'
                          .format(self.stats.dungeon_trip, 
                                  self.stats.dungeon_level))
-
 
     def _dragon_lair(self):
         """Move dragons to dragon's lair"""
@@ -197,10 +191,8 @@ class AdventureChest():
         self._print_party_info()
 
         if (len(self.dragon_lair) >= self.settings.dragon_slayers_number 
-            and not self.stats.dragon_awake):
+            and not self.dragon_lair.is_awake):
             self.print_delay('Дракон пробуждается!\n')
-            self.stats.dragon_awake = True
-
 
     def _action(self):
         """Requests an action and calls needed method"""
@@ -210,7 +202,7 @@ class AdventureChest():
             if 'Дракон' in self.dungeon:
                 self._dragon_lair()
             # Leave the dangeon if it's empty
-            if not self.dungeon and not self.stats.dragon_awake:
+            if not self.dungeon and not self.dragon_lair.is_awake:
                 self._regrouping()
                 break
 
@@ -242,8 +234,6 @@ class AdventureChest():
                 raise Defeat
             elif action == ACTIONS['continue']:
                 break
-            #break
-
 
     def __create_action_possibilities(self):
         """ Create list that contains allowed actions
@@ -263,7 +253,7 @@ class AdventureChest():
 
         # Create a request containing all your possibilities
         # Fight
-        if self.dungeon.is_monsters() or self.stats.dragon_awake:
+        if self.dungeon.is_monsters() or self.dragon_lair.is_awake:
             message.append('Сражаться - {}'.format(action_number))
             ACTIONS['fight'] = action_number
             action_number += 1
@@ -290,7 +280,7 @@ class AdventureChest():
             ACTIONS['treasure'] = action_number
             action_number += 1
         # Reatreat
-        if self.dungeon.is_monsters() or self.stats.dragon_awake:
+        if self.dungeon.is_monsters() or self.dragon_lair.is_awake:
             message.append('Отступить - {}'.format(action_number))
             ACTIONS['retreat'] = action_number
         else:
@@ -299,14 +289,12 @@ class AdventureChest():
 
         return message, ACTIONS
 
-
     def _fight(self):
         """Calls common figt or dragon fight"""
         if self.dungeon.is_monsters():
             self._monster_fight()
         else:
             self._dragon_fight()
-
             
     def _monster_fight(self):
         """Fighting with monsters"""
@@ -321,7 +309,6 @@ class AdventureChest():
 
         #Checks and kills
         self._check_and_kill(unit, monster)
-        
 
     def _dragon_fight(self):
         """Fighting with a dragon"""
@@ -349,11 +336,9 @@ class AdventureChest():
         self.print_delay("Дракон побежден!\n")
 
         self.treasures.get_treasure()
-        self.print_delay("Получена 1 ед. опыта\n")
+        self.print_delay("Получена 1 ед. опыта.\n")
         self.hero.get_exp()
         self.dragon_lair.clear()
-        self.stats.dragon_awake = False
-
 
     def combat_capability_check(self, monsters_number=1):
         """Checks ability to kill a dragon"""
@@ -383,7 +368,6 @@ class AdventureChest():
                 potential_dragon_slayers.add(self.hero.units[1])
 
         return True if len(potential_dragon_slayers) >= monsters_number else False
-
 
     def _scroll(self):
         """Using a scroll"""
@@ -418,16 +402,17 @@ class AdventureChest():
         black_rerolled_list = [choice(self.dungeon.units) for i in range(len(black_reroll_list))]
 
         # Print transformation
-        self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
+        if white_rerolled_list:
+            self.print_delay("Выбранные кубики партии {} перебрасываются в {}."
                          .format(white_reroll_list, white_rerolled_list))
-        self.print_delay("Выбранные кубики подземелья {} перебрасыватюся в {}."
+        if black_rerolled_list:
+            self.print_delay("Выбранные кубики подземелья {} перебрасыватюся в {}."
                          .format(black_reroll_list, black_rerolled_list))
         self.print_delay('')
 
         # Extends party and dungeon lists with new rolls of dice
         self.party.extend(white_rerolled_list)
         self.dungeon.extend(black_rerolled_list)
-
 
     def _reward(self):
         """Reward cycle"""
@@ -454,7 +439,6 @@ class AdventureChest():
             elif action == "Зелье":
                 self._potion()
 
-
     def _chest(self, unit):
         """Opens chests after battle and give truasure for every one"""
 
@@ -467,7 +451,6 @@ class AdventureChest():
         # Another units open one chest
         else:
             self.treasures.get_treasure()
-
 
     def _potion(self):
         """Drinking potions at the end of dungeon"""
@@ -488,7 +471,6 @@ class AdventureChest():
         # Revomes remaining potions
         while "Зелье" in self.dungeon:
             self.dungeon.remove("Зелье")
-
 
     def _regrouping(self):
         """Regrouping phase"""
@@ -520,7 +502,6 @@ class AdventureChest():
                         self.stats.dungeon_level += 1
                     break
 
-
     def _leave_the_dungeon(self, exp=True):
         """Leave the dungeon and get experience"""
         if exp:
@@ -542,7 +523,6 @@ class AdventureChest():
         self.stats.dungeon_trip += 1
         self._reset_dungeon()
 
-
     def _get_item(self, items_list, back=False, *delete_items):
         """Choosing item from 'items_list' and return it
             return False if exception was raised"""
@@ -556,7 +536,6 @@ class AdventureChest():
         index = self._get_index_from_items_list(unique_list, back)
 
         return 'back' if index == 'back' else unique_list[index]
-
 
     def _get_unit(self, *del_units):
         """Get a unit from the party and treasures, if any"""
@@ -580,7 +559,6 @@ class AdventureChest():
             return self.treasures.use_combat(del_units)
         elif request == 'hero':
             return self.hero.ability(del_units)
-
 
     def _get_index_from_items_list(self, items_list:list, 
                                    back:bool=False, 
@@ -633,7 +611,6 @@ class AdventureChest():
                     return 'treasure'
                 elif index == HERO:
                     return 'hero'
-              
                 
     def _check_and_kill(self, unit, monster):
         """ Checks a unit and a monster interaction
@@ -652,7 +629,6 @@ class AdventureChest():
             self.dungeon.delete_unit(unit=monster)
 
         self.party.delete_unit(unit)
-
 
     def print_delay(self, message):
         """Print message and sleep"""

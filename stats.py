@@ -11,5 +11,4 @@ class Stats():
         # Dungeon
         self.dungeon_level = 1
         self.dungeon_trip = 1
-        self.dragon_awake = False
 
