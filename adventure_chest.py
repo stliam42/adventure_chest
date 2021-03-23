@@ -45,7 +45,7 @@ class AdventureChest():
 
         # Hero
         self.hero = hero.Knight(self)
-        #self.hero.get_exp(5)
+        self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -78,7 +78,7 @@ class AdventureChest():
         self.dragon_lair.clear()
         self.stats.dungeon_level = 1
         self.treasures.clear()
-        self.hero.is_ability_used = False
+        self.hero.reset_abilities()
 
     def reset_game(self):
         """Resets game statistics and other parametrs"""
@@ -131,7 +131,7 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=["Дракон", "Дракон", "Дракон"]) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=["Гоблин"] * 3) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
     def _end_of_game(self):
         """End of game"""
@@ -319,6 +319,8 @@ class AdventureChest():
         dragon_slayers = []
 
         self.print_delay("Битва с драконом!\n")
+        self.print_delay("Для победы над драконом необходимо {} сопартийца."
+                         .format(self.settings.dragon_slayers_number))
 
         # Choosing units who will fight with a dragon
         self.print_delay("Выбери сопартийцев, которые будут сражаться с драконом:")

@@ -123,6 +123,11 @@ class Hero:
         """Reset a hero"""
         self.__init__(self.ac_game)
 
+    def reset_abilities(self):
+        """Reset used abilities"""
+        self.is_ability_used = False
+        self.is_passive_used = False
+
     def __rep__(self):
         return self.name
 
@@ -132,6 +137,7 @@ class Hero:
                 .format(self.name, self.exp, self.ability_name) + 
                 ("использована." if self.is_ability_used 
                  else "не использована."))
+
 
 
 class UnitHero(Hero):
@@ -300,12 +306,34 @@ class Knight(Hero):
                 ('свиток был заменён стражем' if scroll_counter == 1 
                     else 'свитка были заменёны стражами')))
             print('')
-            self.is_passive_used = True
+        self.is_passive_used = True
         
+    def ability(self):
+        """ Transfom monsters into dragons and move it to lair"""
+        self.ac_game.print_delay('Вы используете способность "{}".'
+                                 .format(self.ability_name))
+        self.ac_game.print_delay("Все монстры были превращены в драконов.\n")
+
+        for monster in self.ac_game.dungeon:
+            if any((monster == "Гоблин", monster == "Скелет", monster == "Слизень")):
+                self.ac_game.dungeon[self.ac_game.dungeon.index(monster)] = "Дракон"
+
+        self.is_ability_used = True
+
+    def ability_check(self, usage, *args, **kwargs):
+        """ Check monsters in a dungeon"""
+        if usage != 'ability':
+            return False
+        return (True if any(("Гоблин" in self.ac_game.dungeon, 
+                           "Скелет" in self.ac_game.dungeon, 
+                           "Слизень" in self.ac_game.dungeon))
+                else False)
+
     def improve(self):
         """Improves your hero and gives him new name and ability"""
         super().improve('"Убийцей драконов"')
         self.name = "Убийца драконов"
         
         self.ac_game.print_delay('Новый пассивный навык - чтобы победить '
-                                 'дракона требуется 2 сопартийца, вместе 3.')
+                                 'дракона требуется 2 сопартийца, вместо 3.')
+        self.ac_game.settings.dragon_slayers_number = 2
