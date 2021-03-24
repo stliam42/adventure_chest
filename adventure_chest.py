@@ -35,7 +35,7 @@ class AdventureChest():
                            "thief": ("Вор"), 
                            "guardian" : ("Страж"),
                            "scroll" : ("Свиток"),
-                           "monster" : ("Гоблин", "Скелет", "Слизень")
+                           #"monster" : ("Гоблин", "Скелет", "Слизень")
                            }
 
         # Groups
@@ -44,8 +44,10 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Crusader(self)
-        #self.hero.get_exp(5)
+        self.hero = hero.Enchantress(self)
+        if not self.hero.is_passive_change_party:
+            self.hero.passive()
+        self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -131,7 +133,7 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=["Сундук"] * 3) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=["Гоблин"] * 2 + ["Скелет"]) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
     def _end_of_game(self):
         """End of game"""
@@ -193,7 +195,7 @@ class AdventureChest():
         while True:
             self._print_party_info()
             # Active passive ability
-            if not self.hero.is_passive_used:
+            if not self.hero.is_passive_used and self.hero.is_passive_change_party:
                 self.hero.passive()
                 continue
             # Moves dragons to dragons' lair
@@ -231,6 +233,7 @@ class AdventureChest():
             elif action == ACTIONS['retreat']:
                 raise Defeat
             elif action == ACTIONS['continue']:
+                self._regrouping()
                 break
 
     def __create_action_possibilities(self):
@@ -301,7 +304,7 @@ class AdventureChest():
             raise Defeat
 
         print("Выберите сопартийца: ")
-        unit = self._get_unit("Свиток")
+        unit = self._get_unit(self.units_dict['scroll'])
         print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
@@ -328,7 +331,8 @@ class AdventureChest():
             self.print_delay('Кубики подземелья - {}'.format(self.party))
             self.print_delay('Драконоборцы - {}'.format(dragon_slayers))
 
-            dragon_slayer = self._get_unit("Свиток", *dragon_slayers)
+            dragon_slayer = self._get_unit(self.units_dict['scroll'], 
+                                           *dragon_slayers)
             dragon_slayers.append(dragon_slayer)
             self.party.remove(dragon_slayer)
 
@@ -427,7 +431,8 @@ class AdventureChest():
             if action == 'back': 
                 break
 
-            del_units = "Свиток" if action == "Сундук" else None
+            del_units = (self.units_dict['scroll'] 
+                         if action == "Сундук" else None)
 
             print(("Выберите сопартийца, который ") + ("откроет сундуки:"
                   if action == "Сундук" else "выпьет зелья:"))

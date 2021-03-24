@@ -1,8 +1,8 @@
-import hero
+#import hero
 
 import pymorphy2
 
 morph = pymorphy2.MorphAnalyzer()
 
-for i in range(10):
-    print(morph.parse('перемещается')[0].make_agree_with_number(i).word)
+name = morph.parse("Драконоборец")[0]
+print(name.inflect({'ablt'})[0].capitalize())

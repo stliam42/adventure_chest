@@ -4,6 +4,9 @@ from sys import modules
 from inspect import getmembers, isclass
 from random import choice
 
+import pymorphy2
+morph = pymorphy2.MorphAnalyzer()
+
 
 def __create_heroes_list():
     """This function creates list of heroes in this module"""
@@ -32,6 +35,7 @@ class Hero:
         self.is_passive_used: bool = False
         self.improved: bool = False
         self.ac_game = ac_game
+        self.is_passive_change_party = False
         self.__introduce()
 
     def passive(self):
@@ -40,7 +44,9 @@ class Hero:
 
     def ability(self, usage=None):
         """Active ability"""
-        pass
+        self.ac_game.print_delay('Вы используете способность "{}".'
+                                 .format(self.ability_name))
+        self.is_ability_used = True
 
     def get_exp(self, n:int=1):
         """Get exp and check improve"""
@@ -54,12 +60,14 @@ class Hero:
 
     def improve(self, new_name:str):
         """Improve your abilities when yo have >= 5 exp and change name of hero"""
-        print('Ваш герой "{}" становится {}!'.format(self.name, new_name))
+        ablative_new_name = (morph.parse(new_name)[0]
+                             .inflect({'ablt'})[0].capitalize())
+        print('Ваш герой "{}" становится "{}"!'.format(self.name, ablative_new_name))
+        self.name = new_name
         self.improved = True
 
     def ability_check(self, *args, **kwargs) -> None:
         """Check possibility to use active ability"""
-        return None
 
     def __introduce(self):
         """Introduces a hero"""
@@ -191,8 +199,7 @@ class Spellcaster(UnitHero):
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
-        super().improve('"Боевым магом"')
-        self.name = "Боевой маг"
+        super().improve('Ведьмак')
         self.ability_name = "Мистическая ярость"
         
         self.ac_game.print_delay('Новая активная способность - "{}":сбросьте все '
@@ -245,8 +252,7 @@ class Crusader(UnitHero):
             
     def improve(self):
         """Improves your hero and gives him new name and ability"""
-        super().improve('"Паладином"')
-        self.name = "Паладин"
+        super().improve('Паладин')
         self.ability_name = "Божественное вмешательство"
         
         self.ac_game.print_delay('Новая активная способность - "{}":\n'
@@ -275,6 +281,7 @@ class Knight(Hero):
                              'в подземелье в драконов.'
                              .format(self.ability_name))
         super().__init__(ac_game)
+        self.is_passive_change_party = True
 
     def passive(self):
         """ Replace all scrolls with guadrians when you form a party."""
@@ -292,30 +299,88 @@ class Knight(Hero):
         
     def ability(self):
         """ Transfom monsters into dragons and move it to lair"""
-        self.ac_game.print_delay('Вы используете способность "{}".'
-                                 .format(self.ability_name))
+        super().ability()
         self.ac_game.print_delay("Все монстры были превращены в драконов.\n")
 
         for monster in self.ac_game.dungeon:
             if any((monster == "Гоблин", monster == "Скелет", monster == "Слизень")):
                 self.ac_game.dungeon[self.ac_game.dungeon.index(monster)] = "Дракон"
 
-        self.is_ability_used = True
-
     def ability_check(self, usage, *args, **kwargs):
         """ Check monsters in a dungeon"""
-        if usage != 'ability':
+        if self.is_ability_used:
             return False
-        return (True if any(("Гоблин" in self.ac_game.dungeon, 
+        elif usage == 'ability':
+            return (True if any(("Гоблин" in self.ac_game.dungeon, 
                            "Скелет" in self.ac_game.dungeon, 
                            "Слизень" in self.ac_game.dungeon))
-                else False)
+                    else False)
+        return False
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
-        super().improve('"Убийцей драконов"')
-        self.name = "Убийца драконов"
-        
+        super().improve('Драконоборец')
         self.ac_game.print_delay('Новый пассивный навык - чтобы победить '
                                  'дракона требуется 2 сопартийца, вместо 3.')
         self.ac_game.settings.dragon_slayers_number = 2
+
+
+class Enchantress(Hero):
+    """
+    With the help of powerful magic, the sorceress
+    enchants monsters and turns them into potions,
+    which will help revive the fallen party members.
+    """
+
+    def __init__(self, ac_game):
+        self.name = "Волшебница"
+        self.ability_name = "Околдовать монстра"
+        self.passive_info = ("Пассивный навык: свитки можно использовать "
+                             "в качестве любого сопартийца.")
+        self.ability_info = ('Активная способность - "{}": превращает одного '
+                             'монстра в зелье.'
+                             .format(self.ability_name))
+        super().__init__(ac_game)
+
+    def passive(self):
+        """Scroll may be used as every party members."""
+        for key, value in self.ac_game.units_dict.items():
+            self.ac_game.units_dict[key] = (value, "Свиток") if value != "Свиток" else ()
+        self.is_passive_used = True
+
+    def ability(self):
+        """Turn one monster into potion. """
+        super().ability()
+        if self.improved:
+            print("Выберите монстра: ")
+            monster1 = self.ac_game._get_item(self.ac_game.dungeon, False, "Сундук", "Зелье")
+            self.ac_game.dungeon.remove(monster1)
+        print("Выберите монстра: ")
+        monster2 = self.ac_game._get_item(self.ac_game.dungeon, False, "Сундук", "Зелье")
+        self.ac_game.dungeon.insert(self.ac_game.dungeon.index(monster2), "Зелье")
+        self.ac_game.dungeon.remove(monster2)
+        if self.improved:
+            self.ac_game.print_delay("{} и {} превращены в зелье.\n".format(monster1, monster2))
+        else:
+            self.ac_game.print_delay("{} превращён в зелье.\n".format(monster2))
+
+
+
+    def ability_check(self, usage, *args, **params):
+        """Enchantress may use ability if there is at least one monster in the dungeon."""
+        if self.is_ability_used:
+            return False
+        elif usage == 'ability':
+            return True if self.ac_game.dungeon.is_monsters() else False
+        return False
+
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('Чародейка')
+        self.ability_name = "Гипноз"
+        self.ac_game.print_delay('Новая активная способность - "{}":\n'
+                                 'превращает 2 монстров в 1 зелье.'
+                                 .format(self.ability_name))
+        
+
+            
