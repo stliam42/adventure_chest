@@ -19,59 +19,8 @@ def get_random_hero(ac_game):
     """Return random hero"""
     
     return choice(__create_heroes_list())(ac_game)
-
-
-class Ability:
-    """Class for common hero abilities"""
-
-    @staticmethod
-    def hero_as_unit_ability(hero, del_units:tuple) -> str:
-        """Ability which allows you to use hero as unit.
-           Returns unit"""
-
-        units = list(hero.units)
-        for del_unit in del_units:
-            if del_unit in units:
-                units.remove(del_unit)
-
-        # Choosing a unit
-        hero.ac_game.print_delay('{} может быть использован как "{}" или "{}".\n'
-                                 .format(hero.name, hero.units[0], hero.units[1]))
-        hero.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
-
-        unit = hero.ac_game._get_item(units)
-        hero.ac_game.party.insert(0, unit)
-
-        return unit
-
-
-    @staticmethod
-    def units_interchangeability_passive(hero):
-        """Passive, which allows you to use a unit of one type as another."""
-        for key, unit in hero.ac_game.units_dict.items():
-            if unit in hero.units:
-                hero.ac_game.units_dict[key] = hero.units
-
-
-    @staticmethod
-    def hero_as_unit_ability_check(hero, usage, args, params):
-        """Checks if the hero can be used as a unit or not"""
-        if usage != 'unit':
-            return False
-
-        own_units = list(hero.units)
-
-        # Try to delete forbidden units
-        try:
-            for del_unit in params['del_units']:
-                if del_unit in own_units:
-                    own_units.remove(del_unit)
-        except:
-            pass
-
-        return True if own_units else False
-
         
+
 class Hero:
     """ Abstract hero class for adventure chest game.
         Common methods and attributes are defined here."""
@@ -148,15 +97,34 @@ class UnitHero(Hero):
         super().__init__(ac_game)
 
     def passive(self):
-        """UnitHero can use one_tupe as another_type and vice versa."""
-        Ability.units_interchangeability_passive(self)
+        """UnitHero can use one_type as another_type and vice versa."""
+        for key, unit in self.ac_game.units_dict.items():
+            if unit in self.units:
+                self.ac_game.units_dict[key] = self.units
+        self.is_passive_used = True
 
     def ability(self, del_units=None):
         """UnitHero may be used as one_type or another_type
         improved ability allows reset all dungeon dice"""
         self.is_ability_used = True
-        return (self._improved_ability() if self.improved 
-                else Ability.hero_as_unit_ability(self, del_units))
+
+        if self.improved:
+            return self._improved_ability() 
+        else:
+            units = list(self.units)
+            for del_unit in del_units:
+                if del_unit in units:
+                    units.remove(del_unit)
+
+            # Choosing a unit
+            self.ac_game.print_delay('{} может быть использован как "{}" или "{}".\n'
+                                     .format(self.name, self.units[0], self.units[1]))
+            self.ac_game.print_delay("Каким сопартийцем хотите воспользоваться?")
+
+            unit = self.ac_game._get_item(units)
+            self.ac_game.party.insert(0, unit)
+
+            return unit
 
     def ability_check(self, usage=None, *args, **params):
         """Spellcaster may be used as warrior or mage.
@@ -164,8 +132,24 @@ class UnitHero(Hero):
         
         if self.is_ability_used:
             return False
-        return (self._improved_ability_check(usage, args, params) if self.improved 
-                else Ability.hero_as_unit_ability_check(self, usage, args, params)) 
+        elif self.improved:
+            return self._improved_ability_check(usage, args, params)
+        else:
+            # Checks if the hero can be used as a unit or not
+            if usage != 'unit':
+                return False
+
+            own_units = list(self.units)
+
+            # Try to delete forbidden units
+            try:
+                for del_unit in params['del_units']:
+                    if del_unit in own_units:
+                        own_units.remove(del_unit)
+            except:
+                pass
+
+            return True if own_units else False
 
     def _improved_ability(self, *args, **kwargs):
         pass
@@ -258,8 +242,8 @@ class Crusader(UnitHero):
            Checks availability of dungeon dice."""
         if usage != 'ability':
             return False
-        return True if all((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
-                           self.ac_game.treasures) else False
+        return True if all(((any([self.ac_game.dungeon, self.ac_game.dragon_lair])), 
+                           self.ac_game.treasures)) else False
             
     def improve(self):
         """Improves your hero and gives him new name and ability"""

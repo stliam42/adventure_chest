@@ -44,8 +44,8 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Knight(self)
-        self.hero.get_exp(5)
+        self.hero = hero.Crusader(self)
+        #self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
