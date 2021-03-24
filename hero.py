@@ -14,7 +14,6 @@ def __create_heroes_list():
     available_heroes.remove(UnitHero)
     return available_heroes
 
-
 def get_random_hero(ac_game):
     """Return random hero"""
     
@@ -86,7 +85,6 @@ class Hero:
                 .format(self.name, self.exp, self.ability_name) + 
                 ("использована." if self.is_ability_used 
                  else "не использована."))
-
 
 
 class UnitHero(Hero):

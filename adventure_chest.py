@@ -131,7 +131,7 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=["Гоблин"] * 3) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=["Сундук"] * 3) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
     def _end_of_game(self):
         """End of game"""

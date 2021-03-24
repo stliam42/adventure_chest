@@ -2,7 +2,7 @@ from random import randint
 
 from exceptions import Leave
 
-class Treasures():
+class Treasures(list):
     """Treasures class for AC game"""
 
     def __init__(self, ac_game):
@@ -13,47 +13,45 @@ class Treasures():
         self._noncombat_treasures = {"Кольцо невидимости", "Эликсир", "Свиток", 
                                        "Приманка для дракона", "Городской портал"}
 
-        self.items = {'sword':"Разящий меч"}
-
         self._treasure_to_unit_dict = {"Разящий меч" : "Воин",
                                        "Талисман" : "Клирик",
                                        "Жезл силы" : "Маг",
                                        "Воровские инструменты" : "Вор",
                                        "Свиток" : "Свиток"}
 
-    def __iter__(self):
-        self.i = 0
-        return self
+    #def __iter__(self):
+    #    self.i = 0
+    #    return self
 
-    def __next__(self):
-        if self.i < len(self._treasures):
-            result = self._treasures[self.i]
-            self.i +=1
-            return result
-        raise StopIteration
+    #def __next__(self):
+    #    if self.i < len(self):
+    #        result = self[self.i]
+    #        self.i +=1
+    #        return result
+    #    raise StopIteration
 
-    def __repr__(self):
-        return self._treasures
+    #def __repr__(self):
+    #    return self
 
-    def __str__(self):
-        return str(self._treasures)
+    #def __str__(self):
+    #    return str(self)
 
-    def __bool__(self):
-        return True if self._treasures else False
+    #def __bool__(self):
+    #    return True if self else False
 
-    def clear(self):
-        self._treasures.clear()
+    #def clear(self):
+    #    self.clear()
 
     def get_treasure(self, n=1):
         """Gets i treasures"""
         for _ in range(n):
-            self._treasures.append(self.__treasures_pull.pop(randint(0, len(self.__treasures_pull) - 1)))
-            self.ac_game.print_delay("Получено сокровище - '{}'.".format(self._treasures[-1]))
+            self.append(self.__treasures_pull.pop(randint(0, len(self.__treasures_pull) - 1)))
+            self.ac_game.print_delay("Получено сокровище - '{}'.".format(self[-1]))
         print('')
         
     def is_combat(self, del_list):
         """Return True if there are some combat treasures"""
-        combat_set = self._combat_treasures & set(self._treasures)
+        combat_set = self._combat_treasures & set(self)
 
         for key, value in self._treasure_to_unit_dict.items():
             if key in combat_set and value in del_list:
@@ -63,7 +61,7 @@ class Treasures():
 
     def use_combat(self, del_members):
         """Gets combat treasure, creates temporary unit in a party and returns it"""
-        unique_treasures = list(set(self._treasures) & self._combat_treasures)
+        unique_treasures = list(set(self) & self._combat_treasures)
         
         # Deleting treasures
         for key, value in self._treasure_to_unit_dict.items():
@@ -75,23 +73,23 @@ class Treasures():
         active_treasure = self.ac_game._get_item(unique_treasures)
 
         # Returns treasure to the pull and returns member to game
-        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
+        self.__treasures_pull.append(self.pop(self.index(active_treasure)))
         self.ac_game.party.insert(0, self._treasure_to_unit_dict[active_treasure])
         return self._treasure_to_unit_dict[active_treasure]
 
     def is_noncombat(self):
         """Return True if there are some noncombat treasures"""
-        return True if (self._noncombat_treasures & set(self._treasures)) else False
+        return True if (self._noncombat_treasures & set(self)) else False
 
     def use_noncombat(self):
         """Using noncombat treasure
         Requests for treasure that you want to use and use it"""
 
-        noncombat_treasures = set(self._treasures) & self._noncombat_treasures
+        noncombat_treasures = set(self) & self._noncombat_treasures
         self.ac_game.print_delay("Какое сокровище хотите использовать?")
         active_treasure = self.ac_game._get_item(noncombat_treasures)
 
-        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(active_treasure)))
+        self.__treasures_pull.append(self.pop(self.index(active_treasure)))
 
         self.ac_game.print_delay("Вы использовали сокровище '{}'.\n".format(active_treasure))
 
@@ -119,16 +117,16 @@ class Treasures():
 
     def count_exp(self) -> int:
         """Count treasures experience"""
-        exp = len(self._treasures)
-        for treasure in self._treasures:
+        exp = len(self)
+        for treasure in self:
             if treasure == "Городской портал":
                 exp += 1
-        exp += self._treasures.count("Драконьи чешуйки") // 2 * 2
+        exp += self.count("Драконьи чешуйки") // 2 * 2
         return exp
 
     def discard(self, treasure:str):
         """Return a treasure to the pull"""
-        self.__treasures_pull.append(self._treasures.pop(self._treasures.index(treasure)))
+        self.__treasures_pull.append(self.pop(self.index(treasure)))
 
     def reset(self):
         """Reset treasures lists"""
@@ -145,4 +143,4 @@ class Treasures():
             ["Городской портал"] * 3
             )
 
-        self._treasures = [] 
+        self.clear()
