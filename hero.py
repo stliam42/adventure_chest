@@ -355,24 +355,25 @@ class Enchantress(Hero):
             print("Выберите монстра: ")
             monster1 = self.ac_game._get_item(self.ac_game.dungeon, False, "Сундук", "Зелье")
             self.ac_game.dungeon.remove(monster1)
+
         print("Выберите монстра: ")
         monster2 = self.ac_game._get_item(self.ac_game.dungeon, False, "Сундук", "Зелье")
         self.ac_game.dungeon.insert(self.ac_game.dungeon.index(monster2), "Зелье")
         self.ac_game.dungeon.remove(monster2)
+
         if self.improved:
             self.ac_game.print_delay("{} и {} превращены в зелье.\n".format(monster1, monster2))
         else:
             self.ac_game.print_delay("{} превращён в зелье.\n".format(monster2))
 
-
-
     def ability_check(self, usage, *args, **params):
         """Enchantress may use ability if there is at least one monster in the dungeon."""
-        if self.is_ability_used:
+        if self.is_ability_used or usage != 'ability':
             return False
-        elif usage == 'ability':
+        elif self.improved:
+            return True if self.ac_game.dungeon.count_monsters() >= 2 else False
+        else:
             return True if self.ac_game.dungeon.is_monsters() else False
-        return False
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
@@ -381,6 +382,96 @@ class Enchantress(Hero):
         self.ac_game.print_delay('Новая активная способность - "{}":\n'
                                  'превращает 2 монстров в 1 зелье.'
                                  .format(self.ability_name))
+
+
+class Mercenary(Hero):
+    """
+    Under the command of the commander, 
+    the warriors decisively rush into battle.
+    """
+    def __init__(self, ac_game):
+        self.name = "Наёмник"
+        self.ability_name = "Точный удар"
+        self.passive_info = ("Пассивный навык: формируя партию, вы можете один "
+                             "раз перебросить любое количество кубиков партии.")
+        self.ability_info = ('Активная способность - "{}": победите двух любых монстров.'
+                             .format(self.ability_name))
+        super().__init__(ac_game)
+        self.is_passive_change_party = True
+
+    def passive(self):
+        """Scroll may be used as every party members."""
+        if self.improved:
+            self.ac_game.units_dict['super_unit'] = 'Воин'
+        else:
+            party_reroll_list = []
+            self.ac_game.print_delay("Вы можете перебросить любое "
+                                     "количество кубиков партии:")
+
+            while True:
+                self.ac_game.print_delay('Кубики партии - {}'.format(self.ac_game.party))
+                self.ac_game.print_delay("Кубики партии, выбранные для переброса - {}"
+                                 .format(party_reroll_list))
+                self.ac_game.print_delay('')
+
+                party = self.ac_game.party
+                if not party:
+                    break
+                self.ac_game.print_delay("Выберите кубик партии или подземелья, "
+                                 "который хотите перебросить:")
+                item = self.ac_game._get_item(party, back=True)
+                if item == 'back':
+                    break
+
+                party_reroll_list.append(self.ac_game.party.pop(self.ac_game.party.index(item)))
+
+            # Roll new items
+            party_rerolled_list = [choice(self.ac_game.party.units) for i in range(len(party_reroll_list))]
+
+            # Print transformation
+            if party_rerolled_list:
+                self.ac_game.print_delay("Выбранные кубики партии {} перебрасываются в {}."
+                             .format(party_reroll_list, party_rerolled_list))
+            self.ac_game.print_delay('')
+
+            # Extends party and dungeon lists with new rolls of dice
+            self.ac_game.party.extend(party_rerolled_list)
+
+        self.is_passive_used = True
+
+    def ability(self):
+        """Turn one monster into potion. """
+        super().ability()
+        if self.improved:
+            self.ac_game._scroll()
+        else:
+            print("Выберите монстров: ")
+            for i in range(2):
+                self.ac_game.dungeon.kill_unit(self.ac_game._get_item(
+                    self.ac_game.dungeon, False, "Сундук", "Зелье")
+                                               )
+
+    def ability_check(self, usage, *args, **params):
+        """Enchantress may use ability if there is at least one monster in the dungeon."""
+        if self.is_ability_used or usage != 'ability':
+            return False
+        elif self.improved:
+            return True
+        else:
+            return True if self.ac_game.dungeon.count_monsters() >= 2 else False
+
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('Полководец')
+        self.ability_name = "Тактический манёвр"
+        self.ac_game.print_delay('Новый пассивный навык: воины побеждают '
+                                 'одного дополнительного монстра любого типа.')
+
+        self.ac_game.print_delay('Новая активная способность - "{}":\n'
+                                 'перебросьте любое количество кубиков '
+                                 'партии или поздемелья.'
+                                 .format(self.ability_name))
         
 
-            
+if __name__ == "main":
+    main()

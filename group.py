@@ -12,7 +12,7 @@ class Group(list):
             self += [choice(self.units) for unit in range(n)]
 
 
-    def delete_unit(self, unit:str, all=False):
+    def kill_unit(self, unit:str, all=False):
         """Kills unit in a group. If parametr 'all' is True:
            kills all units of this type"""
         if all:
@@ -50,7 +50,14 @@ class Dungeon(Group):
                         "Скелет" in self or 
                         "Слизень" in self) else False
 
-
+    def count_monsters(self) -> int:
+        """Count monsters in the dungeon and return the number"""
+        counter = 0
+        for item in self:
+            if item == 'Гоблин' or item == 'Скелет' or item == 'Слизень':
+                counter += 1
+        return counter
+    
     def is_reward(self):
         """Returns true if there are chests of potions in a dungeon"""
         return True if ("Сундук" in self or 
@@ -74,3 +81,6 @@ class DragonLair(Group):
         """ Return True is Dragon lair has 3 dice or more"""
         return True if len(self) >= 3 else False
 
+
+if __name__ == "main":
+    main()

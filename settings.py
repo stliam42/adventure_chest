@@ -14,3 +14,7 @@ class Settings():
 
         # Hero
         self.random_hero = False
+
+
+if __name__ == "main":
+    main()

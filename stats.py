@@ -12,3 +12,7 @@ class Stats():
         self.dungeon_level = 1
         self.dungeon_trip = 1
 
+
+if __name__ == "main":
+    main()
+

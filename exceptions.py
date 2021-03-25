@@ -3,3 +3,7 @@ class Defeat(Exception):
 
 class Leave(Exception):
     pass
+
+
+if __name__ == "main":
+    main()

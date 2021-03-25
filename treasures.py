@@ -144,3 +144,7 @@ class Treasures(list):
             )
 
         self.clear()
+
+
+if __name__ == "main":
+    main()

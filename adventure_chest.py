@@ -35,7 +35,7 @@ class AdventureChest():
                            "thief": ("Вор"), 
                            "guardian" : ("Страж"),
                            "scroll" : ("Свиток"),
-                           #"monster" : ("Гоблин", "Скелет", "Слизень")
+                           "super_unit" : (),
                            }
 
         # Groups
@@ -44,10 +44,11 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Enchantress(self)
+        self.hero = hero.Mercenary(self)
+        # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
-        self.hero.get_exp(5)
+        #self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -308,8 +309,14 @@ class AdventureChest():
         print("Выберите монстра: ")
         monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
 
-        #Checks and kills
+        # Checks and kills
         self._check_and_kill(unit, monster)
+
+        # Some heroer buffs unit and they can kill one more monster
+        if unit in self.units_dict['super_unit']:
+            print("Выберите дополнительного монстра: ")
+            add_monster = self._get_item(self.dungeon, False, "Сундук", "Зелье")
+            self.dungeon.kill_unit(add_monster)
 
     def _dragon_fight(self):
         """Fighting with a dragon"""
@@ -437,7 +444,7 @@ class AdventureChest():
             print(("Выберите сопартийца, который ") + ("откроет сундуки:"
                   if action == "Сундук" else "выпьет зелья:"))
             unit = self._get_unit(del_units)
-            self.party.delete_unit(unit)
+            self.party.kill_unit(unit)
 
             if action == "Сундук":
                 self._chest(unit)
@@ -629,13 +636,17 @@ class AdventureChest():
                 unit in self.units_dict['cleric'] and monster == "Скелет" or
                 unit in self.units_dict['mage'] and monster == "Слизень" or
                 unit in self.units_dict['guardian']):
-            self.dungeon.delete_unit(unit=monster, all=True)
+            self.dungeon.kill_unit(unit=monster, all=True)
         else:
-            self.dungeon.delete_unit(unit=monster)
+            self.dungeon.kill_unit(unit=monster)
 
-        self.party.delete_unit(unit)
+        self.party.kill_unit(unit)
 
     def print_delay(self, message):
         """Print message and sleep"""
         print(message)
         sleep(self.settings.time_delay)
+
+
+if __name__ == "main":
+    main()
