@@ -44,7 +44,7 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Mercenary(self)
+        self.hero = hero.Minstrel(self)
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
@@ -134,7 +134,7 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=["Гоблин"] * 2 + ["Скелет"]) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=["Гоблин"] * 2 + ["Скелет"] + ["Дракон"] * 2) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
 
     def _end_of_game(self):
         """End of game"""

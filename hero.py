@@ -473,5 +473,38 @@ class Mercenary(Hero):
                                  .format(self.ability_name))
         
 
+class Minstrel(UnitHero):
+    """
+    Guardians, inspired by the music of the bard, fight
+    with tripled strength!
+    """
+
+    def __init__(self, ac_game):
+        self.units = ('Вор', 'Маг')
+        self.name = "Менестрель"
+        self.ability_name = "Баллада"
+        self.passive_info = ("Пассивный навык: магов можно использовать "
+                             "как воров, а воров - как магов.")
+        self.ability_info = ('Активная способность - "{}": сбросьте '
+                             'все кубики из логова дракона.'
+                             .format(self.ability_name))
+        super().__init__(ac_game)
+
+    def ability(self):
+        """Remove all dragons from dragon lair"""
+        Hero.ability(self)
+        self.ac_game.print_delay("Все кубики из логово дракона сбрасываются.\n")
+        self.ac_game.dragon_lair.clear()
+
+    def ability_check(self, usage, *args, **params):
+        return True if self.ac_game.dragon_lair else False
+
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('Бард')
+        self.ac_game.print_delay('Дополнительный пассивный навык: стражи побеждают '
+                                 'одного дополнительного монстра любого типа.')
+        self.ac_game.units_dict['super_unit'] = "Страж"
+
 if __name__ == "main":
     main()
