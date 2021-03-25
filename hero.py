@@ -319,7 +319,7 @@ class Knight(Hero):
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
-        super().improve('Драконоборец')
+        super().improve('Драконобой')
         self.ac_game.print_delay('Новый пассивный навык - чтобы победить '
                                  'дракона требуется 2 сопартийца, вместо 3.')
         self.ac_game.settings.dragon_slayers_number = 2
