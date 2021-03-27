@@ -80,7 +80,6 @@ class AdventureChest():
         self.dungeon.clear()
         self.dragon_lair.clear()
         self.stats.dungeon_level = 1
-        self.treasures.clear()
         self.hero.reset_abilities()
 
     def reset_game(self):
@@ -146,7 +145,14 @@ class AdventureChest():
         """End of game"""
         self.print_delay('-' * 100)
         self.print_delay("Игра закончена.\n")
-        self.print_delay("Ваш опыт - {}.\n".format(self.hero.exp))
+        if self.treasures:
+            treasure_exp = self.treasures.count_exp()
+            self.print_delay('Получено {} ед. опыта за сокровища.'
+                                .format(treasure_exp))
+
+            self.hero.get_exp(treasure_exp)
+
+        self.print_delay("За эту игру вы получили {} ед. опыта.\n".format(self.hero.exp))
         self.print_delay("Начать игру заново? (да/нет)")
 
         while True:
@@ -531,14 +537,7 @@ class AdventureChest():
         if exp:
             self.print_delay('Получено {} ед. опыта за уровень подземелья.'
                              .format(self.stats.dungeon_level))
-
-            if self.treasures:
-                self.print_delay('Получено {} ед. опыта за сокровища.'
-                                 .format(self.treasures.count_exp()))
-
-            trip_exp = self.stats.dungeon_level + self.treasures.count_exp()
-            self.hero.get_exp(trip_exp)
-
+            self.hero.get_exp(self.stats.dungeon_level)
         else:
             self.print_delay("Вы вынуждены бежать из подземелья: "
                              "вы не получаете опыта за этот поход.")

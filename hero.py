@@ -505,5 +505,44 @@ class Minstrel(UnitHero):
                                  'одного дополнительного монстра любого типа.')
         self.ac_game.units_dict['super_unit'] = "Страж"
 
+
+class Occultist(UnitHero):
+    """
+    With the help of necromancy, this sorceress makes the dead fight 
+    for her, but the dead cannot fight forever. As soon as 
+    the character goes into a new level dungeon, 
+    the skeletons crumble into dust.
+    """
+
+    def __init__(self):
+        self.units = ('Клирик', 'Маг')
+        self.name = "Оккультист"
+        self.ability_name = "Пробуждение мёртвых"
+        self.passive_info = ("Пассивный навык: клириков можно использовать "
+                             "как магов, а магов - как клириков.")
+        self.ability_info = ('Активная способность - "{}": превращает одного '
+                             'скелета в воина. В следующей фазе перегруппировки '
+                             'он покидает группу.'
+                             .format(self.ability_name, self.name))
+        super().__init__(ac_game)
+
+    def ability_check(self, usage, *args, **kwargs):
+        """Check skeletons in dungeon"""
+        if self.improved:
+            return True if self.ac_game.dungeon.count("Скелет") >= 2 else False
+        else:
+            return True if 'Скелет' in self.ac_game.dungeon else False
+
+    def improve(self):
+         """Improves your hero and gives him new name and ability"""
+        super().improve('Некромант')
+        self.ability_name = "Повелевание мёртвыми"
+        self.ac_game.print_delay('Улучшенная активная способность - "{}":\n'
+                                 'превращает двух скелетов в воинов. '
+                                 'В следующей фазе перегруппировки '
+                                 'они покидает группу.'
+                                 .format(self.ability_name))
+
+
 if __name__ == "main":
     main()

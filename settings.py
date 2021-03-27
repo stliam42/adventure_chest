@@ -9,7 +9,7 @@ class Settings():
         self.black_dice = 7
         # Dungeon
         self.max_dungeon_level = 10
-        self.max_dungeon_trip = 3
+        self.max_dungeon_trip = 1
         self.dragon_slayers_number = 3 # Number of units who will slay a dragon
 
         # Hero
