@@ -36,6 +36,7 @@ class AdventureChest():
                            "guardian" : ("Страж"),
                            "scroll" : ("Свиток"),
                            "super_unit" : (),
+                           "temp_units" : [],
                            }
 
         # Groups
@@ -44,11 +45,11 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Enchantress(self)
+        self.hero = hero.Occultist(self)
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
-        #self.hero.get_exp(5)
+        self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -134,12 +135,12 @@ class AdventureChest():
 
         # Creating dungeon
         self.dungeon.add_unit(units=
-                              ["Гоблин"] * 0 + 
-                              ["Скелет"] * 0 + 
+                              ["Гоблин"] * 3 + 
+                              ["Скелет"] * 2 + 
                               ["Слизень"] * 0 + 
                               ["Дракон"] * 0 +
-                              ["Зелье"] * 2 +
-                              ["Сундук"] * 2)
+                              ["Зелье"] * 0 +
+                              ["Сундук"] * 0)
 
     def _end_of_game(self):
         """End of game"""
@@ -505,8 +506,14 @@ class AdventureChest():
     def _regrouping(self):
         """Regrouping phase"""
         self.print_delay("Вы зачистили подземелье!\n")
-        self._print_party_info()
+        
+        while self.units_dict['temp_units']:
+            self.print_delay('{} покидает группу.\n'
+                             .format(self.units_dict['temp_units'][0]))
+            self.party.remove(self.units_dict['temp_units'][0])
+            self.units_dict['temp_units'].pop(0)
 
+        self._print_party_info()
         if self.stats.dungeon_level == self.settings.max_dungeon_level:
             self.print_delay("Вы достигли максимального уровня подземелья!\n")
             self._leave_the_dungeon()
@@ -577,6 +584,8 @@ class AdventureChest():
             )
 
         if isinstance(request, int):
+            # There is an Enchantress passive which allows you to 
+            # use scrolls like any type of units.
             if unique_units[request] == 'Свиток':
                 self.print_delay("Выберите сопартийца, в качестве "
                                  "которого будет использован свиток:")
@@ -585,7 +594,11 @@ class AdventureChest():
                 self.party.insert(0, unit)
                 return unit
             else:
+                # Remove temporary units from dictionary. Ability of some heroes
+                if unique_units[request] in self.units_dict['temp_units']:
+                    self.units_dict['temp_units'].remove(unique_units[request])
                 return unique_units[request]
+
         elif request == 'treasure':
             return self.treasures.use_combat(del_units)
         elif request == 'hero':
