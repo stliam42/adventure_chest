@@ -66,8 +66,10 @@ class Hero:
         self.name = new_name
         self.improved = True
 
-    def ability_check(self, *args, **kwargs) -> None:
+    def ability_check(self, usage, *args, **kwargs) -> None:
         """Check possibility to use active ability"""
+        if self.is_ability_used or usage != 'ability':
+            return False
 
     def __introduce(self):
         """Introduces a hero"""
@@ -308,14 +310,14 @@ class Knight(Hero):
 
     def ability_check(self, usage, *args, **kwargs):
         """ Check monsters in a dungeon"""
-        if self.is_ability_used:
+        if self.is_ability_used or usage != 'ability':
             return False
-        elif usage == 'ability':
+        else:
             return (True if any(("Гоблин" in self.ac_game.dungeon, 
                            "Скелет" in self.ac_game.dungeon, 
                            "Слизень" in self.ac_game.dungeon))
                     else False)
-        return False
+
 
     def improve(self):
         """Improves your hero and gives him new name and ability"""
@@ -496,6 +498,8 @@ class Minstrel(UnitHero):
         self.ac_game.dragon_lair.clear()
 
     def ability_check(self, usage, *args, **params):
+        if self.is_ability_used or usage != 'ability':
+            return False
         return True if self.ac_game.dragon_lair else False
 
     def improve(self):
@@ -514,7 +518,7 @@ class Occultist(UnitHero):
     the skeletons crumble into dust.
     """
 
-    def __init__(self):
+    def __init__(self, ac_game):
         self.units = ('Клирик', 'Маг')
         self.name = "Оккультист"
         self.ability_name = "Пробуждение мёртвых"
@@ -526,22 +530,36 @@ class Occultist(UnitHero):
                              .format(self.ability_name, self.name))
         super().__init__(ac_game)
 
+    def ability(self):
+        """ Turn skeletons into warriors"""
+        Hero.ability(self)
+        transform_number = 2 if self.improved else 1
+        self.ac_game.print_delay('Один скелет превращается в воина.\n' 
+                                 if transform_number == 1 else 
+                                 'Два скелета превращаются в воинов.\n')
+        for i in range(transform_number):
+            self.ac_game.dungeon.remove('Скелет')
+            self.ac_game.party.append('Воин')
+            self.ac_game.units_dict['temp_units'].append('Воин')
+
     def ability_check(self, usage, *args, **kwargs):
         """Check skeletons in dungeon"""
+        if self.is_ability_used or usage != 'ability':
+            return False
         if self.improved:
             return True if self.ac_game.dungeon.count("Скелет") >= 2 else False
         else:
             return True if 'Скелет' in self.ac_game.dungeon else False
 
     def improve(self):
-         """Improves your hero and gives him new name and ability"""
+        """Improves your hero and gives him new name and ability"""
         super().improve('Некромант')
         self.ability_name = "Повелевание мёртвыми"
         self.ac_game.print_delay('Улучшенная активная способность - "{}":\n'
-                                 'превращает двух скелетов в воинов. '
-                                 'В следующей фазе перегруппировки '
-                                 'они покидает группу.'
-                                 .format(self.ability_name))
+                                    'превращает двух скелетов в воинов. '
+                                    'В следующей фазе перегруппировки '
+                                    'они покидают группу.'
+                                    .format(self.ability_name))
 
 
 if __name__ == "main":
