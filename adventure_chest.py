@@ -44,7 +44,7 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Minstrel(self)
+        self.hero = hero.Enchantress(self)
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
@@ -134,7 +134,13 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=["Гоблин"] * 2 + ["Скелет"] + ["Дракон"] * 2) # ["Гоблин"] * 3 # ["Дракон", "Дракон", "Дракон", "Гоблин", "Зелье", "Зелье"] # 
+        self.dungeon.add_unit(units=
+                              ["Гоблин"] * 0 + 
+                              ["Скелет"] * 0 + 
+                              ["Слизень"] * 0 + 
+                              ["Дракон"] * 0 +
+                              ["Зелье"] * 2 +
+                              ["Сундук"] * 2)
 
     def _end_of_game(self):
         """End of game"""
@@ -357,7 +363,7 @@ class AdventureChest():
         # Create party set and remove scroll
         units = set(self.party)
         if "Свиток" in units:
-            units.remove('Свиток')
+            units.remove("Свиток")
 
         # Creating combat treasures set and transfom it to units
         combat_treasures_set = set(self.treasures) & self.treasures._combat_treasures
@@ -365,20 +371,26 @@ class AdventureChest():
                               for treasure in combat_treasures_set}
 
         # Intersection 
-        potential_dragon_slayers = units | treasures_to_units
+        potential_monsters_slayers = units | treasures_to_units
 
-        if self.hero.ability_check(usage='unit', del_units=potential_dragon_slayers):
-            if (self.hero.units[0] not in potential_dragon_slayers
-                    and self.hero.units[1] not in potential_dragon_slayers):
-                potential_dragon_slayers.add(self.hero.units[0])
+        # Add a hero if it can be used as unit
+        if self.hero.ability_check(usage='unit', del_units=potential_monsters_slayers):
+            if (self.hero.units[0] not in potential_monsters_slayers
+                    and self.hero.units[1] not in potential_monsters_slayers):
+                potential_monsters_slayers.add(self.hero.units[0])
 
-            elif self.hero.units[0] not in potential_dragon_slayers:
-                potential_dragon_slayers.add(self.hero.units[0])
+            elif self.hero.units[0] not in potential_monsters_slayers:
+                potential_monsters_slayers.add(self.hero.units[0])
 
-            elif self.hero.units[1] not in potential_dragon_slayers:
-                potential_dragon_slayers.add(self.hero.units[1])
+            elif self.hero.units[1] not in potential_monsters_slayers:
+                potential_monsters_slayers.add(self.hero.units[1])
 
-        return True if len(potential_dragon_slayers) >= monsters_number else False
+        # Add scrolls if your hero is Enchantress
+
+        return (True if len(potential_monsters_slayers) + 
+               (self.party.count('Свиток') if not self.units_dict['scroll'] else 0)
+                >= monsters_number 
+                else False)
 
     def _scroll(self):
         """Using a scroll"""
@@ -566,13 +578,22 @@ class AdventureChest():
             )
 
         if isinstance(request, int):
-            return unique_units[request]
+            if unique_units[request] == 'Свиток':
+                self.print_delay("Выберите сопартийца, в качестве "
+                                 "которого будет использован свиток:")
+                unit = self._get_item(self.party.units, *del_units, 'Свиток')
+                self.party.remove('Свиток')
+                self.party.insert(0, unit)
+                return unit
+            else:
+                return unique_units[request]
         elif request == 'treasure':
             return self.treasures.use_combat(del_units)
         elif request == 'hero':
             return self.hero.ability(del_units)
 
-    def _get_index_from_items_list(self, items_list:list, 
+    def _get_index_from_items_list(self, 
+                                   items_list:list, 
                                    back:bool=False, 
                                    treasure:bool=False, 
                                    hero:bool=False) -> int:

@@ -344,8 +344,7 @@ class Enchantress(Hero):
 
     def passive(self):
         """Scroll may be used as every party members."""
-        for key, value in self.ac_game.units_dict.items():
-            self.ac_game.units_dict[key] = (value, "Свиток") if value != "Свиток" else ()
+        self.ac_game.units_dict['scroll'] = ()
         self.is_passive_used = True
 
     def ability(self):
