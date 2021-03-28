@@ -15,6 +15,9 @@ class Settings():
         # Hero
         self.random_hero = False
 
+        # Game process
+        self.reward_before_fight = False
+
 
 if __name__ == "main":
     main()

@@ -45,11 +45,11 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Occultist(self)
+        self.hero = hero.HalfGoblin(self)
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
-        self.hero.get_exp(5)
+        #self.hero.get_exp(5)
 
         # Player's party, monters, cemetery and dragon lists
         self._reset_dungeon()
@@ -139,8 +139,8 @@ class AdventureChest():
                               ["Скелет"] * 2 + 
                               ["Слизень"] * 0 + 
                               ["Дракон"] * 0 +
-                              ["Зелье"] * 0 +
-                              ["Сундук"] * 0)
+                              ["Зелье"] * 1 +
+                              ["Сундук"] * 2)
 
     def _end_of_game(self):
         """End of game"""
@@ -151,7 +151,7 @@ class AdventureChest():
             self.print_delay('Получено {} ед. опыта за сокровища.'
                                 .format(treasure_exp))
 
-            self.hero.get_exp(treasure_exp)
+            self.hero.get_exp(treasure_exp, False)
 
         self.print_delay("За эту игру вы получили {} ед. опыта.\n".format(self.hero.exp))
         self.print_delay("Начать игру заново? (да/нет)")
@@ -272,9 +272,9 @@ class AdventureChest():
             message.append('Сражаться - {}'.format(action_number))
             ACTIONS['fight'] = action_number
             action_number += 1
-
         # Reward
-        elif self.dungeon.is_reward():
+        if (self.dungeon.is_reward() and (not self.dungeon.is_monsters() 
+            and not self.dragon_lair.is_awake or self.settings.reward_before_fight)):
             message.append('Получить награду - {}'.format(action_number))
             ACTIONS['reward'] = action_number
             action_number += 1
@@ -447,16 +447,27 @@ class AdventureChest():
     def _reward(self):
         """Reward cycle"""
         self.print_delay("Время брать награду:\n")
+
+        # Create reward list. It needs for HalfGoblin.
+        reward_dice = []
+        
+
         while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
+            if "Зелье" in self.dungeon:
+                reward_dice.append("Зелье")
+            if "Сундук" in self.dungeon:
+                reward_dice.append("Сундук")
+
             self.print_delay('Кубики партии - {}'.format(self.party))
-            self.print_delay('Кубики подземелья - {}\n'.format(self.dungeon))
+            self.print_delay('Кубики подземелья - {}\n'.format(reward_dice))
             self.print_delay('Ваш выбор: ')
 
-            action = self._get_item(self.dungeon, back=True)
+            action = self._get_item(reward_dice, back=True)
 
             if action == 'back': 
                 break
 
+            # Delete scroll if you chose chest
             del_units = (self.units_dict['scroll'] 
                          if action == "Сундук" else None)
 
@@ -464,6 +475,7 @@ class AdventureChest():
                   if action == "Сундук" else "выпьет зелья:"))
             unit = self._get_unit(del_units)
             self.party.kill_unit(unit)
+            reward_dice.clear()
 
             if action == "Сундук":
                 self._chest(unit)

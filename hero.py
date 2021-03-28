@@ -17,7 +17,7 @@ def __create_heroes_list():
     available_heroes.remove(UnitHero)
     return available_heroes
 
-def get_random_hero(ac_game):
+def get_hero(ac_game):
     """Return random hero"""
     
     return choice(__create_heroes_list())(ac_game)
@@ -48,10 +48,11 @@ class Hero:
                                  .format(self.ability_name))
         self.is_ability_used = True
 
-    def get_exp(self, n:int=1):
+    def get_exp(self, n:int=1, improve=True):
         """Get exp and check improve"""
         self.exp += n
-        self.__improve_check()
+        if improve:
+            self.__improve_check()
 
     def __improve_check(self):
         """Checks experience and improve your abilities"""
@@ -560,6 +561,63 @@ class Occultist(UnitHero):
                                     'В следующей фазе перегруппировки '
                                     'они покидают группу.'
                                     .format(self.ability_name))
+
+
+class HalfGoblin(Hero):
+    """
+    The half-goblin can persuade his kinsmen to join 
+    the squad for a short time. It is a pity that 
+    the goblins will not follow him further than one level.
+    """
+
+    def __init__(self, ac_game):
+
+        self.name = "Полугоблин"
+        self.ability_name = "Зов о помощи"
+        self.passive_info = ("Пассивный навык: вы можете открывать сундуки и "
+                             "выпивать зелья в любой момент фазы монстров.")
+        self.ability_info = ('Активная способность - "{}": превращает одного '
+                             'гоблтна в вора. В следующей фазе перегруппировки '
+                             'он покидает группу.'
+                             .format(self.ability_name, self.name))
+        super().__init__(ac_game)
+
+    def passive(self):
+        """ You can take chests and potion before you beat all monsters."""
+        self.ac_game.settings.reward_before_fight = True
+        self.is_passive_used = True
+
+    def ability(self):
+        """ Turn goblins into thieves"""
+        super().ability(self)
+        transform_number = 2 if self.improved else 1
+        self.ac_game.print_delay('Один гоблин превращается в вора.\n' 
+                                 if transform_number == 1 else 
+                                 'Два гоблина превращаются в воров.\n')
+        for i in range(transform_number):
+            self.ac_game.dungeon.remove('Гоблин')
+            self.ac_game.party.append('Вор')
+            self.ac_game.units_dict['temp_units'].append('Вор')
+
+    def ability_check(self, usage, *args, **kwargs):
+        """Check skeletons in dungeon"""
+        if self.is_ability_used or usage != 'ability':
+            return False
+        if self.improved:
+            return True if self.ac_game.dungeon.count("Гоблин") >= 2 else False
+        else:
+            return True if 'Гоблин' in self.ac_game.dungeon else False
+
+    def improve(self):
+        """Improves your hero and gives him new name and ability"""
+        super().improve('Вождь')
+        self.ability_name = "Приказ вождя"
+        self.ac_game.print_delay('Улучшенная активная способность - "{}":\n'
+                                    'превращает двух гоблинов в воров. '
+                                    'В следующей фазе перегруппировки '
+                                    'они покидают группу.'
+                                    .format(self.ability_name))
+
 
 
 if __name__ == "main":
