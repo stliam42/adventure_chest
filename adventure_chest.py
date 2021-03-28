@@ -45,7 +45,7 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.HalfGoblin(self)
+        self.hero = hero.Mercenary(self)
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
@@ -598,7 +598,7 @@ class AdventureChest():
         if isinstance(request, int):
             # There is an Enchantress passive which allows you to 
             # use scrolls like any type of units.
-            if unique_units[request] == 'Свиток':
+            if unique_units[request] == 'Свиток' and not self.units_dict['scroll']:
                 self.print_delay("Выберите сопартийца, в качестве "
                                  "которого будет использован свиток:")
                 unit = self._get_item(self.party.units, *del_units, 'Свиток')
