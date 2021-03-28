@@ -18,6 +18,21 @@ class Settings():
         # Game process
         self.reward_before_fight = False
 
+    def request_settings(self):
+        while True:
+            try:
+                print("1 - Пользовательские настройки, 2 - Использовать стандартные.")
+                answer = int(input("Ваш выбор: "))
+            except:
+                self.print_delay("Некорректный ввод")
+            else:
+                if answer > 2:
+                    raise ValueError
+                elif answer == 1:
+                    white_dice = int(input("Введите количество кубиков партии: "))
+                    self.settings.white_dice = 0
+                else:
+                    break
 
 if __name__ == "main":
     main()

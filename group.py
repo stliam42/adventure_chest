@@ -4,7 +4,7 @@ from random import choice
 class Group(list):
     """Parental class for groups in AdventureChest"""
 
-    def add_unit(self, units:list=None, n:int=1):
+    def add_unit(self, n:int=1, units:list=None):
         """Adds n unit to the group"""
         if units:
             self.extend(units)

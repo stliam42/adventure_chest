@@ -45,35 +45,17 @@ class AdventureChest():
         self.dragon_lair = DragonLair()
 
         # Hero
-        self.hero = hero.Mercenary(self)
+        #self.hero = hero.Mercenary(self)
         # Use passive
-        if not self.hero.is_passive_change_party:
-            self.hero.passive()
+        #if not self.hero.is_passive_change_party:
+        #    self.hero.passive()
         #self.hero.get_exp(5)
 
-        # Player's party, monters, cemetery and dragon lists
+        # Player's party, monters, and dragon lair
         self._reset_dungeon()
 
         # Print the settings of current dungeon
-        self._print_dungeon_settings()
-
-
-    #def __request_settings(self):
-    #    while True:
-    #        try:
-    #            print("1 - Пользовательские настройки, 2 - Использовать стандартные.")
-    #            answer = int(input("Ваш выбор: "))
-    #        except:
-    #            self.print_delay("Некорректный ввод")
-    #        else:
-    #            if answer > 2:
-    #                raise ValueError
-    #            elif answer == 1:
-    #                white_dice = int(input("Введите количество кубиков партии: "))
-    #                self.settings.white_dice = 
-    #            else:
-    #                break
-
+        #self._print_dungeon_settings()
 
     def _reset_dungeon(self):
         """Reset dungeon"""
@@ -81,7 +63,7 @@ class AdventureChest():
         self.dungeon.clear()
         self.dragon_lair.clear()
         self.stats.dungeon_level = 1
-        self.hero.reset_abilities()
+        #self.hero.reset_abilities()
 
     def reset_game(self):
         """Resets game statistics and other parametrs"""
@@ -99,6 +81,24 @@ class AdventureChest():
                          .format(self.settings.white_dice))
         self.print_delay("Количество кубиков подземелья - {}."
                          .format(self.settings.white_dice))
+
+    def start(self):
+        """Game launch method. Greeting, settings and start"""
+        self.print_delay("Добро пожаловать в \"Сундук приключений\"!")
+        self.print_delay("Версия игры - 1.0.1.")
+        self.print_delay("1 - Играть, 2 - Настройки.")
+        while True:
+            try:
+                answer = int(input("Ваш выбор: "))
+                if answer > 2:
+                    raise ValueError
+            except:
+                self.print_delay("Некорректный ввод")
+            else:
+                if answer == 1:
+                    self.game_procces_cycle()
+                elif answer == 2:
+                    self.settings.change()
 
     def game_procces_cycle(self):
         """Run the game"""
@@ -134,13 +134,14 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(units=
-                              ["Гоблин"] * 3 + 
-                              ["Скелет"] * 2 + 
-                              ["Слизень"] * 0 + 
-                              ["Дракон"] * 0 +
-                              ["Зелье"] * 1 +
-                              ["Сундук"] * 2)
+        self.dungeon.add_unit(self.stats.dungeon_level)
+        # self.dungeon.add_unit(units=
+        #                      ["Гоблин"] * 3 + 
+        #                      ["Скелет"] * 2 + 
+        #                      ["Слизень"] * 0 + 
+        #                      ["Дракон"] * 0 +
+        #                      ["Зелье"] * 1 +
+        #                      ["Сундук"] * 2)
 
     def _end_of_game(self):
         """End of game"""
