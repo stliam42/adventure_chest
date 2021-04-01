@@ -18,6 +18,21 @@ class Settings():
         # Game process
         self.reward_before_fight = False
 
+    def show(self):
+        """Display dungeon settings"""
+        print("Текущие настройки подземелья:")
+        print("Количество походов в подземелье - {}."
+                .format(self.max_dungeon_trip))
+        print("Максимальный уровень подземелья - {}."
+                .format(self.max_dungeon_level))
+        print("Количество кубиков партии - {}."
+                .format(self.white_dice))
+        print("Количество кубиков подземелья - {}."
+                .format(self.white_dice))
+        print("Случайный герой - " + ("да." if self.random_hero else "нет."))
+        print('')
+
+
     def request_settings(self):
         while True:
             try:

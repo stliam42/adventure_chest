@@ -71,34 +71,40 @@ class AdventureChest():
         self.hero.improved = False
         #self._reset_dungeon()
 
-    def _print_dungeon_settings(self):
-        """Display dungeon settings"""
-        self.print_delay("Количество походов в подземелье - {}."
-                         .format(self.settings.max_dungeon_trip))
-        self.print_delay("Максимальный уровень подземелья - {}."
-                         .format(self.settings.max_dungeon_level))
-        self.print_delay("Количество кубиков партии - {}."
-                         .format(self.settings.white_dice))
-        self.print_delay("Количество кубиков подземелья - {}."
-                         .format(self.settings.white_dice))
-
     def start(self):
         """Game launch method. Greeting, settings and start"""
         self.print_delay("Добро пожаловать в \"Сундук приключений\"!")
         self.print_delay("Версия игры - 1.0.1.")
         self.print_delay("1 - Играть, 2 - Настройки.")
+        answer = self.input(2)
+        if answer == 1:
+            self.set_up()
+            self.game_procces_cycle()
+        elif answer == 2:
+            self.settings.change()
+
+    def set_up(self):
+        """ Prepare game to play"""
+        self.settings.show()
+        # Get a hero
+        self.hero = hero.get_hero(self, random = self.settings.random_hero)
+        self.hero.introduce()
+        # Use passive
+        if not self.hero.is_passive_change_party:
+            self.hero.passive()
+
+    def input(self, n:int) -> int:
+        """ Input the number from 1 to n and return it"""
         while True:
             try:
                 answer = int(input("Ваш выбор: "))
-                if answer > 2:
+                print('')
+                if answer > n or answer < 0:
                     raise ValueError
             except:
                 self.print_delay("Некорректный ввод")
             else:
-                if answer == 1:
-                    self.game_procces_cycle()
-                elif answer == 2:
-                    self.settings.change()
+                return answer
 
     def game_procces_cycle(self):
         """Run the game"""
@@ -155,17 +161,16 @@ class AdventureChest():
             self.hero.get_exp(treasure_exp, False)
 
         self.print_delay("За эту игру вы получили {} ед. опыта.\n".format(self.hero.exp))
-        self.print_delay("Начать игру заново? (да/нет)")
+        self.print_delay("Начать игру заново?"
+                         "1 - да, 2 - нет.")
 
-        while True:
-            answer = input("Ваш ответ: ").lower()
-            if answer == "да":
-                self.reset_game()
-                return
-            elif answer == 'нет':
-                sys.exit()
-            else:
-                self.print_delay('Некорректный ввод')
+        answer = self.input(2)
+        if answer == "да":
+            self.reset_game()
+            return
+        elif answer == 'нет':
+            sys.exit()
+
 
     def _print_party_info(self):
         """Print game info"""
@@ -223,16 +228,7 @@ class AdventureChest():
 
             message, ACTIONS = self.__create_action_possibilities()
             print(*message, sep = ", ", end = '.\n')
-            while True:
-                try:
-                    action = int(input("Ваш выбор: "))
-                    print('')
-                    if action > len(message): 
-                        raise ValueError
-                except ValueError:
-                    print("Некорректный ввод")
-                else:
-                    break
+            action = self.input(len(message))
 
             # Actions
             if action == ACTIONS['fight']:
@@ -532,25 +528,17 @@ class AdventureChest():
             self._leave_the_dungeon()
 
         else:
-            while True:
-                try:
-                    self.print_delay("Отдых в таверне - 1, Идти дальше - 2.")
-                    action = int(input("Ваш выбор: "))
-                    print('')
-                except ValueError:
-                    self.print_delay("Некорректный ввод")
-                else:
-                    if action > 2:
-                        raise ValueError
-                    # Leave the dungeon
-                    elif action == 1:
-                        raise Leave
+            self.print_delay("Отдых в таверне - 1, Идти дальше - 2.")
+            action = self.input(2)
+            
+            # Leave the dungeon
+            if action == 1:
+                raise Leave
 
-                    # New level
-                    elif action == 2:
-                        self.print_delay('Вы переходите к следующему уровню подземелья.\n')
-                        self.stats.dungeon_level += 1
-                    break
+            # New level
+            elif action == 2:
+                self.print_delay('Вы переходите к следующему уровню подземелья.\n')
+                self.stats.dungeon_level += 1
 
     def _leave_the_dungeon(self, exp=True):
         """Leave the dungeon and get experience"""
@@ -650,25 +638,16 @@ class AdventureChest():
 
         print(*numbered_items_list, sep=', ', end='.\n')
 
-        while True:
-            print('Ваш выбор: ', end='')
+        index = self.input(aux_index)
 
-            try:
-                index = int(input())
-                if index > aux_index or index <= 0:
-                    raise ValueError
-            except ValueError:
-                print("Некорректный ввод")
-            else:
-                print('')
-                if index <= len(items_list):
-                    return index - 1
-                elif index == BACK:
-                    return 'back'
-                elif index == TREASURE:
-                    return 'treasure'
-                elif index == HERO:
-                    return 'hero'
+        if index <= len(items_list):
+            return index - 1
+        elif index == BACK:
+            return 'back'
+        elif index == TREASURE:
+            return 'treasure'
+        elif index == HERO:
+            return 'hero'
                 
     def _check_and_kill(self, unit, monster):
         """ Checks a unit and a monster interaction

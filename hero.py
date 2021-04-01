@@ -3,6 +3,7 @@
 from sys import modules
 from inspect import getmembers, isclass
 from random import choice
+from time import sleep
 
 import pymorphy2
 morph = pymorphy2.MorphAnalyzer()
@@ -17,11 +18,19 @@ def __create_heroes_list():
     available_heroes.remove(UnitHero)
     return available_heroes
 
-def get_hero(ac_game):
-    """Return random hero"""
-    
-    return choice(__create_heroes_list())(ac_game)
-        
+def get_hero(ac_game, random):
+    """Return hero"""
+    hero_list = __create_heroes_list()
+    if random:
+        return choice(hero_list)
+    else:
+        ac_game.print_delay("Выберите героя:")
+        for number, hero in enumerate(hero_list, 1):
+            print('{} - {}.'.format(number, hero(False).name))
+            sleep(ac_game.settings.time_delay)
+        index = ac_game.input(len(hero_list))
+        return hero_list[index-1](ac_game)
+
 
 class Hero:
     """ Abstract hero class for adventure chest game.
@@ -36,7 +45,6 @@ class Hero:
         self.improved: bool = False
         self.ac_game = ac_game
         self.is_passive_change_party = False
-        self.__introduce()
 
     def passive(self):
         """Passive ability"""
@@ -72,7 +80,7 @@ class Hero:
         if self.is_ability_used or usage != 'ability':
             return False
 
-    def __introduce(self):
+    def introduce(self):
         """Introduces a hero"""
         self.ac_game.print_delay('Ваш герой - "{}".'.format(self.name))
         self.ac_game.print_delay(self.passive_info)
@@ -87,7 +95,7 @@ class Hero:
         self.is_ability_used = False
         self.is_passive_used = False
 
-    def __rep__(self):
+    def __repr__(self):
         return self.name
 
     def __str__(self):
