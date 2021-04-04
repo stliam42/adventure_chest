@@ -20,7 +20,7 @@ class AdventureChest():
 
     def _reset_dungeon(self):
         """Reset dungeon"""
-        self.party.create(number=self.settings.white_dice)
+        self.party.add_unit(self.settings.white_dice)
         self.dungeon.clear()
         self.dragon_lair.clear()
         self.stats.dungeon_level = 1
@@ -75,7 +75,7 @@ class AdventureChest():
         self.settings.show()
 
         # Create first party. FIXME
-        self.party.create(self.settings.white_dice)
+        self.party.add_unit(self.settings.white_dice)
         # Get a hero
         self.hero = hero.get_hero(self, random = self.settings.random_hero)
         self.hero.introduce()

@@ -30,19 +30,12 @@ class Party(Group):
         super().__init__()
 
 
-    def create(self, number):
-        """Create a party оf a given number"""
-        self.clear()
-        self.add_unit(n=number)
-
-
 class Dungeon(Group):
     """Class for AdventureChest dungeon"""
     
     def __init__(self):
         self.units = ["Гоблин", "Скелет", "Слизень", "Зелье", "Сундук", "Дракон"]
         super().__init__()
-
 
     def is_monsters(self):
         """Returns True if there are monsters in a dungeon"""
@@ -62,7 +55,6 @@ class Dungeon(Group):
         """Returns true if there are chests of potions in a dungeon"""
         return True if ("Сундук" in self or 
                         "Зелье" in self) else False
-
 
     def move_dragons(self) -> list:
         """Removes all dragons and return it"""

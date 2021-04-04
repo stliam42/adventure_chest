@@ -57,5 +57,6 @@ class Settings():
         self.max_dungeon_trip = new_settings['max_dungeon_trip']
         self.random_hero = new_settings['random_hero']
 
+
 if __name__ == "main":
     main()
