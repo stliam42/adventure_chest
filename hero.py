@@ -333,7 +333,7 @@ class Knight(Hero):
         super().improve('Драконобой')
         self.ac_game.print_delay('Новый пассивный навык - чтобы победить '
                                  'дракона требуется 2 сопартийца, вместо 3.')
-        self.ac_game.settings.dragon_slayers_number = 2
+        self.ac_game.dragon_slayers_number = 2
 
 
 class Enchantress(Hero):
@@ -592,7 +592,7 @@ class HalfGoblin(Hero):
 
     def passive(self):
         """ You can take chests and potion before you beat all monsters."""
-        self.ac_game.settings.reward_before_fight = True
+        self.ac_game.reward_before_fight = True
         self.is_passive_used = True
 
     def ability(self):

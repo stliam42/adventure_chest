@@ -16,14 +16,23 @@ class AdventureChest():
 
     def __init__(self):
         """Inintialization parametrs"""
+        self.reset()
 
+    def _reset_dungeon(self):
+        """Reset dungeon"""
+        self.party.create(number=self.settings.white_dice)
+        self.dungeon.clear()
+        self.dragon_lair.clear()
+        self.stats.dungeon_level = 1
+        #self.hero.reset_abilities()
+
+    def reset(self):
+        """Create game attributes"""
         # Game stats
         self.stats = Stats()
 
         # Game settings
         self.settings = Settings()
-        #self.__request_settings()      #FIXME
-
 
         # Treasures
         self.treasures = Treasures(self)
@@ -44,44 +53,22 @@ class AdventureChest():
         self.dungeon = Dungeon()
         self.dragon_lair = DragonLair()
 
-        # Hero
-        #self.hero = hero.Mercenary(self)
-        # Use passive
-        #if not self.hero.is_passive_change_party:
-        #    self.hero.passive()
-        #self.hero.get_exp(5)
-
-        # Player's party, monters, and dragon lair
-        self._reset_dungeon()
-
-        # Print the settings of current dungeon
-        #self._print_dungeon_settings()
-
-    def _reset_dungeon(self):
-        """Reset dungeon"""
-        self.party.create(number=self.settings.white_dice)
-        self.dungeon.clear()
-        self.dragon_lair.clear()
-        self.stats.dungeon_level = 1
-        #self.hero.reset_abilities()
-
-    def reset_game(self):
-        """Resets game statistics and other parametrs"""
-        self.stats.reset()
-        self.hero.improved = False
-        #self._reset_dungeon()
+        # Game mechanics
+        self.dragon_slayers_number = 3 # Number of units who will slay a dragon
+        self.reward_before_fight = False
 
     def start(self):
         """Game launch method. Greeting, settings and start"""
         self.print_delay("Добро пожаловать в \"Сундук приключений\"!")
         self.print_delay("Версия игры - 1.0.1.")
-        self.print_delay("1 - Играть, 2 - Настройки.")
-        answer = self.input(2)
-        if answer == 1:
-            self.set_up()
-            self.game_procces_cycle()
-        elif answer == 2:
-            self.settings.change()
+        while True:
+            self.print_delay("1 - Играть, 2 - Настройки.")
+            answer = self.input(2)
+            if answer == 1:
+                self.set_up()
+                self.game_procces_cycle()
+            elif answer == 2:
+                self.change_settings()
 
     def set_up(self):
         """ Prepare game to play"""
@@ -92,6 +79,10 @@ class AdventureChest():
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
+
+    def change_settings(self):
+        """ Offer to change settings"""
+        self.settigs.show()
 
     def input(self, n:int) -> int:
         """ Input the number from 1 to n and return it"""
@@ -166,7 +157,7 @@ class AdventureChest():
 
         answer = self.input(2)
         if answer == "да":
-            self.reset_game()
+            self.reset()
             return
         elif answer == 'нет':
             sys.exit()
@@ -206,7 +197,7 @@ class AdventureChest():
 
         self._print_party_info()
 
-        if (len(self.dragon_lair) >= self.settings.dragon_slayers_number 
+        if (len(self.dragon_lair) >= self.dragon_slayers_number 
             and not self.dragon_lair.is_awake):
             self.print_delay('Дракон пробуждается!\n')
 
@@ -271,7 +262,7 @@ class AdventureChest():
             action_number += 1
         # Reward
         if (self.dungeon.is_reward() and (not self.dungeon.is_monsters() 
-            and not self.dragon_lair.is_awake or self.settings.reward_before_fight)):
+            and not self.dragon_lair.is_awake or self.reward_before_fight)):
             message.append('Получить награду - {}'.format(action_number))
             ACTIONS['reward'] = action_number
             action_number += 1
