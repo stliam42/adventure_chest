@@ -22,7 +22,7 @@ def get_hero(ac_game, random):
     """Return hero"""
     hero_list = __create_heroes_list()
     if random:
-        return choice(hero_list)
+        return choice(hero_list)(ac_game)
     else:
         ac_game.print_delay("Выберите героя:")
         for number, hero in enumerate(hero_list, 1):

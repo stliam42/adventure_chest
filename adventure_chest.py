@@ -62,17 +62,20 @@ class AdventureChest():
         self.print_delay("Добро пожаловать в \"Сундук приключений\"!")
         self.print_delay("Версия игры - 1.0.1.")
         while True:
-            self.print_delay("1 - Играть, 2 - Настройки.")
+            print("1 - Играть, 2 - Настройки.")
             answer = self.input(2)
             if answer == 1:
                 self.set_up()
                 self.game_procces_cycle()
             elif answer == 2:
-                self.change_settings()
+                self.settings_menu()
 
     def set_up(self):
         """ Prepare game to play"""
         self.settings.show()
+
+        # Create first party. FIXME
+        self.party.create(self.settings.white_dice)
         # Get a hero
         self.hero = hero.get_hero(self, random = self.settings.random_hero)
         self.hero.introduce()
@@ -80,18 +83,55 @@ class AdventureChest():
         if not self.hero.is_passive_change_party:
             self.hero.passive()
 
-    def change_settings(self):
+    def settings_menu(self):
         """ Offer to change settings"""
-        self.settigs.show()
+        self.settings.show()
+        action_list = ['Назад - 1', 'Изменить - 2']
 
-    def input(self, n:int) -> int:
+        if not self.settings.is_default:
+            action_list.append('Сбросить - 3') 
+
+        print(*action_list, sep=', ', end='.\n')
+        action = self.input(len(action_list))
+
+        if action == 1:
+            return
+        elif action == 2:
+            self.request_settings()
+        elif action == 3:
+            self.settings.reset()
+            self.print_delay('Настройки сброшены.\n')
+
+    def request_settings(self):
+        """Request new settings"""
+        new_settings = {}
+        print("Введите задержку вывода сообщений в милисекундах:")
+        new_settings['time_delay'] = self.input() / 1000
+        print("Введите количество кубиков партии:")
+        new_settings['white_dice'] = self.input()
+        print("Введите количество кубиков подземелья:")
+        new_settings['black_dice'] = self.input()
+        print("Введите максимальный уровень поздемелья:")
+        new_settings['max_dungeon_level'] = self.input()
+        print("Введите количество походов в подземелье: ")
+        new_settings['max_dungeon_trip'] = self.input()
+        print("Случайный герой\n"
+              "Да - 1, Нет - 2.")
+        new_settings['random_hero'] = True if self.input(2) == 1 else False
+
+        self.settings.change(new_settings)
+        self.print_delay('Настройки успешно сохранены.\n')
+
+
+    def input(self, n:int=0) -> int:
         """ Input the number from 1 to n and return it"""
         while True:
             try:
                 answer = int(input("Ваш выбор: "))
                 print('')
-                if answer > n or answer < 0:
-                    raise ValueError
+                if n:
+                    if answer > n or answer < 0:
+                        raise ValueError
             except:
                 self.print_delay("Некорректный ввод")
             else:
@@ -131,14 +171,14 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        self.dungeon.add_unit(self.stats.dungeon_level)
-        # self.dungeon.add_unit(units=
-        #                      ["Гоблин"] * 3 + 
-        #                      ["Скелет"] * 2 + 
-        #                      ["Слизень"] * 0 + 
-        #                      ["Дракон"] * 0 +
-        #                      ["Зелье"] * 1 +
-        #                      ["Сундук"] * 2)
+        #self.dungeon.add_unit(self.stats.dungeon_level)
+        self.dungeon.add_unit(units=
+                              ["Гоблин"] * 0 + 
+                              ["Скелет"] * 0 + 
+                              ["Слизень"] * 0 + 
+                              ["Дракон"] * 0 +
+                              ["Зелье"] * 3 +
+                              ["Сундук"] * 2)
 
     def _end_of_game(self):
         """End of game"""
@@ -437,38 +477,36 @@ class AdventureChest():
         self.print_delay("Время брать награду:\n")
 
         # Create reward list. It needs for HalfGoblin.
-        reward_dice = []
+        reward_list = []
         
+        for item in self.dungeon:
+            if item == "Сундук" or item == "Зелье":
+                reward_list.append(item)
 
-        while "Сундук" in self.dungeon or "Зелье" in self.dungeon:
-            if "Зелье" in self.dungeon:
-                reward_dice.append("Зелье")
-            if "Сундук" in self.dungeon:
-                reward_dice.append("Сундук")
 
-            self.print_delay('Кубики партии - {}'.format(self.party))
-            self.print_delay('Кубики подземелья - {}\n'.format(reward_dice))
-            self.print_delay('Ваш выбор: ')
+        self.print_delay('Кубики партии - {}'.format(self.party))
+        self.print_delay('Кубики подземелья - {}\n'.format(reward_list))
+        self.print_delay('Ваш выбор: ')
 
-            action = self._get_item(reward_dice, back=True)
+        action = self._get_item(reward_list, back=True)
 
-            if action == 'back': 
-                break
+        if action == 'back': 
+            return
 
-            # Delete scroll if you chose chest
-            del_units = (self.units_dict['scroll'] 
-                         if action == "Сундук" else None)
+        # Delete scroll if you chose chest
+        del_units = (self.units_dict['scroll'] 
+                        if action == "Сундук" else None)
 
-            print(("Выберите сопартийца, который ") + ("откроет сундуки:"
-                  if action == "Сундук" else "выпьет зелья:"))
-            unit = self._get_unit(del_units)
-            self.party.kill_unit(unit)
-            reward_dice.clear()
+        print(("Выберите сопартийца, который ") + ("откроет сундуки:"
+                if action == "Сундук" else "выпьет зелья:"))
+        unit = self._get_unit(del_units)
+        self.party.kill_unit(unit)
+        reward_list.clear()
 
-            if action == "Сундук":
-                self._chest(unit)
-            elif action == "Зелье":
-                self._potion()
+        if action == "Сундук":
+            self._chest(unit)
+        elif action == "Зелье":
+            self._potion()
 
     def _chest(self, unit):
         """Opens chests after battle and give truasure for every one"""
@@ -482,6 +520,7 @@ class AdventureChest():
         # Another units open one chest
         else:
             self.treasures.get_treasure()
+            self.dungeon.remove("Сундук")
 
     def _potion(self):
         """Drinking potions at the end of dungeon"""
