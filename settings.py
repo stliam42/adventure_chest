@@ -1,10 +1,10 @@
 class Settings():
     """Settings for AC game"""
 
-    DEFAULT = {'time_delay': 0.1,
+    DEFAULT = {'time_delay': 0.4,
                'dice': 7,
                'max_dungeon_level': 10,
-               'dungeon_campaign': 1,
+               'dungeon_campaign': 3,
                'random_hero': True,
                }
 
