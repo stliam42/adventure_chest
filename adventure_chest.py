@@ -13,6 +13,7 @@ import pymorphy2; morph = pymorphy2.MorphAnalyzer()
 
 class AdventureChest():
     """Adventure Chest game class"""
+    version = '1.1.2'
 
     def __init__(self):
         """Inintialization parametrs"""
@@ -56,7 +57,7 @@ class AdventureChest():
     def start(self):
         """Game launch method. Greeting, settings and start"""
         self.print_delay("Добро пожаловать в \"Сундук приключений\"!")
-        self.print_delay("Версия игры - 1.0.1.")
+        self.print_delay("Версия игры - {}".format(AdventureChest.version))
         while True:
             print("1 - Играть, 2 - Настройки.")
             answer = self.input(2)
@@ -187,14 +188,14 @@ class AdventureChest():
         monster_number = min(available_dice, self.stats.dungeon_level)
 
         # Creating dungeon
-        #self.dungeon.add_unit(self.stats.dungeon_level)
-        self.dungeon.add_unit(units=
-                              ["Гоблин"] * 0 + 
-                              ["Скелет"] * 0 + 
-                              ["Слизень"] * 0 + 
-                              ["Дракон"] * 0 +
-                              ["Зелье"] * 3 +
-                              ["Сундук"] * 2)
+        self.dungeon.add_unit(self.stats.dungeon_level)
+        #self.dungeon.add_unit(units=
+        #                      ["Гоблин"] * 0 + 
+        #                      ["Скелет"] * 0 + 
+        #                      ["Слизень"] * 0 + 
+        #                      ["Дракон"] * 0 +
+        #                      ["Зелье"] * 3 +
+        #                      ["Сундук"] * 2)
 
     def _end_of_game(self):
         """End of game"""
