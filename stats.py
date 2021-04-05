@@ -10,7 +10,7 @@ class Stats():
 
         # Dungeon
         self.dungeon_level = 1
-        self.dungeon_trip = 1
+        self.dungeon_campaign = 1
 
 
 if __name__ == "main":

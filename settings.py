@@ -4,7 +4,7 @@ class Settings():
     DEFAULT = {'time_delay': 0.1,
                'dice': 7,
                'max_dungeon_level': 10,
-               'max_dungeon_trip': 3,
+               'dungeon_campaign': 1,
                'random_hero': True,
                }
 
@@ -19,7 +19,7 @@ class Settings():
         self.black_dice = Settings.DEFAULT['dice']
         # Dungeon
         self.max_dungeon_level = Settings.DEFAULT['max_dungeon_level']
-        self.max_dungeon_trip = Settings.DEFAULT['max_dungeon_trip']
+        self.dungeon_campaign = Settings.DEFAULT['dungeon_campaign']
 
         # Hero
         self.random_hero = True
@@ -30,7 +30,7 @@ class Settings():
         return (True if (self.time_delay == Settings.DEFAULT['time_delay'] and 
                         self.white_dice == self.black_dice == Settings.DEFAULT['dice'] and
                         self.max_dungeon_level == Settings.DEFAULT['max_dungeon_level'] and
-                        self.max_dungeon_trip == Settings.DEFAULT['max_dungeon_trip'] and
+                        self.dungeon_campaign == Settings.DEFAULT['dungeon_campaign'] and
                         self.random_hero == Settings.DEFAULT['random_hero']) 
                 else False)
 
@@ -44,7 +44,7 @@ class Settings():
         print("Максимальный уровень подземелья - {}."
                 .format(self.max_dungeon_level))
         print("Количество походов в подземелье - {}."
-                .format(self.max_dungeon_trip))
+                .format(self.dungeon_campaign))
         print("Случайный герой - " + ("да." if self.random_hero else "нет."))
         print('')
 
@@ -54,7 +54,7 @@ class Settings():
         self.white_dice = new_settings['white_dice']
         self.black_dice = new_settings['black_dice']
         self.max_dungeon_level = new_settings['max_dungeon_level']
-        self.max_dungeon_trip = new_settings['max_dungeon_trip']
+        self.dungeon_campaign = new_settings['dungeon_campaign']
         self.random_hero = new_settings['random_hero']
 
 

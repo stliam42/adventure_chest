@@ -20,11 +20,7 @@ class AdventureChest():
 
     def _reset_dungeon(self):
         """Reset dungeon"""
-        self.party.add_unit(self.settings.white_dice)
-        self.dungeon.clear()
-        self.dragon_lair.clear()
-        self.stats.dungeon_level = 1
-        #self.hero.reset_abilities()
+        pass
 
     def reset(self):
         """Create game attributes"""
@@ -74,11 +70,10 @@ class AdventureChest():
         """ Prepare game to play"""
         self.settings.show()
 
-        # Create first party. FIXME
-        self.party.add_unit(self.settings.white_dice)
         # Get a hero
         self.hero = hero.get_hero(self, random = self.settings.random_hero)
         self.hero.introduce()
+
         # Use passive
         if not self.hero.is_passive_change_party:
             self.hero.passive()
@@ -114,14 +109,13 @@ class AdventureChest():
         print("Введите максимальный уровень поздемелья:")
         new_settings['max_dungeon_level'] = self.input()
         print("Введите количество походов в подземелье: ")
-        new_settings['max_dungeon_trip'] = self.input()
+        new_settings['dungeon_campaign'] = self.input()
         print("Случайный герой\n"
               "Да - 1, Нет - 2.")
         new_settings['random_hero'] = True if self.input(2) == 1 else False
 
         self.settings.change(new_settings)
         self.print_delay('Настройки успешно сохранены.\n')
-
 
     def input(self, n:int=0) -> int:
         """ Input the number from 1 to n and return it"""
@@ -140,17 +134,39 @@ class AdventureChest():
     def game_procces_cycle(self):
         """Run the game"""
         while True:
-            if self.stats.dungeon_trip > self.settings.max_dungeon_trip:
+            # Check end of the game
+            if self.stats.dungeon_campaign > self.settings.dungeon_campaign:
                 self._end_of_game()
+                break
+            self._create_new_campaign()
             try:
-                self._new_dungeon_level()
-                self._action()
+                self._campaign() 
             except Defeat:
                 self._leave_the_dungeon(exp=False)
             except Leave:
-                self.print_delay('Вы восстанавливаете силы и '
+
+                self.print_delay('Вы заканчиваете текущий поход.' 
+                                 if (self.stats.dungeon_campaign == 
+                                     self.settings.dungeon_campaign)
+                                else 'Вы восстанавливаете силы и '
                                  'готовитесь к следующему походу:')
                 self._leave_the_dungeon()
+
+    def _create_new_campaign(self):
+        """ 
+        Create new campaign: roll white dice 
+        to make party and clean dungeon and dragon lair.
+        """
+        self.party.add_unit(self.settings.white_dice)
+        self.dungeon.clear()
+        self.dragon_lair.clear()
+        self.stats.dungeon_level = 1
+        self.hero.reset_abilities()
+
+    def _campaign(self):
+        """ Method for making actions in the campaign"""
+        self._new_dungeon_level()
+        self._action()
 
     def _new_dungeon_level(self):
         """Creating new dungeon level"""
@@ -191,17 +207,9 @@ class AdventureChest():
 
             self.hero.get_exp(treasure_exp, False)
 
-        self.print_delay("За эту игру вы получили {} ед. опыта.\n".format(self.hero.exp))
-        self.print_delay("Начать игру заново?"
-                         "1 - да, 2 - нет.")
-
-        answer = self.input(2)
-        if answer == "да":
-            self.reset()
-            return
-        elif answer == 'нет':
-            sys.exit()
-
+        self.print_delay("За эту игру вы получили {} ед. опыта.".format(self.hero.exp))
+        self.print_delay('-' * 100 + '\n')
+        self.reset()
 
     def _print_party_info(self):
         """Print game info"""
@@ -221,7 +229,7 @@ class AdventureChest():
         """Print trip and dungeon level"""
         self.print_delay('-'*100)
         self.print_delay('Поход №{}, Уровень подземелья {}.\n'
-                         .format(self.stats.dungeon_trip, 
+                         .format(self.stats.dungeon_campaign, 
                                  self.stats.dungeon_level))
 
     def _dragon_lair(self):
@@ -579,10 +587,8 @@ class AdventureChest():
         else:
             self.print_delay("Вы вынуждены бежать из подземелья: "
                              "вы не получаете опыта за этот поход.")
-
         
-        self.stats.dungeon_trip += 1
-        self._reset_dungeon()
+        self.stats.dungeon_campaign += 1
 
     def _get_item(self, items_list, back=False, *delete_items):
         """Choosing item from 'items_list' and return it
